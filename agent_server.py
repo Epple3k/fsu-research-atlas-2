@@ -100,7 +100,15 @@ def run_agent(question, path="web/network.json"):
     messages = [{"role": "user", "content": question}]
     net = tools._net(path)
     seen = set()
-    edge_pairs = []  # ordered, deduped [a, b] field-id pairs surfaced via link_papers
+    edge_pairs = []  # ordered, deduped [a, b] field-id pairs surfaced via a tool call
+
+    def add_edge(a, b):
+        if not a or not b:
+            return
+        key = tuple(sorted([a, b]))
+        if key not in seen:
+            seen.add(key)
+            edge_pairs.append(list(key))
 
     text = ""
     for _ in range(MAX_TOOL_TURNS):
@@ -118,13 +126,19 @@ def run_agent(question, path="web/network.json"):
         for tu in tool_uses:
             result = tools.call(tu.name, tu.input, path=path)
             if tu.name == "link_papers":
-                a = tools._resolve_field(tu.input.get("field_a", ""), net)
-                b = tools._resolve_field(tu.input.get("field_b", ""), net)
-                if a and b:
-                    key = tuple(sorted([a, b]))
-                    if key not in seen:
-                        seen.add(key)
-                        edge_pairs.append([a, b])
+                add_edge(tools._resolve_field(tu.input.get("field_a", ""), net),
+                          tools._resolve_field(tu.input.get("field_b", ""), net))
+            elif tu.name == "top_collaborations":
+                # top_collaborations() already returns real, tool-verified edges
+                # (field ids + work_ids straight from the network data) — a claim
+                # built from these is just as grounded as one from link_papers,
+                # so capture them even if the model never separately calls
+                # link_papers for the same pair (it often won't, despite being
+                # asked to — this makes the guarantee structural, not prompt-reliant)
+                for row in result.get("data", []):
+                    edge = row.get("edge")
+                    if edge and len(edge) == 2:
+                        add_edge(edge[0], edge[1])
             results.append({"type": "tool_result", "tool_use_id": tu.id,
                             "content": json.dumps(result)})
         messages.append({"role": "user", "content": results})
