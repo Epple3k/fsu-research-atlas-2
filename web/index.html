@@ -153,6 +153,7 @@ let NET, FN={}, POS={};   // POS: field id -> {x,y,angle} — each field's seria
 let LIVE={};              // field id -> {x,y} — current on-screen position (== POS unless being dragged)
 let RAD={};               // field id -> node radius
 let NODE_EL={}, EDGE_ELS={}, EDGES_BY_FIELD={};
+let ANIM_GEN={};          // field id -> snap-back animation generation (cancels stale animations)
 let activeClaim=null;
 let activeEdgePairs=[];  // the committed (click-driven) highlight, restored after a hover preview ends
 let dragState=null;      // {id, moved, startX, startY} while a pointer-drag is in progress
@@ -329,9 +330,15 @@ function drawNetwork(){
     if(dropTargetId){ NODE_EL[dropTargetId].g.classList.remove("drop-target"); dropTargetId=null; }
   }
 
+  // if you grab the same node again before its snap-back animation finishes,
+  // the leftover rAF loop and the new drag's pointermove would otherwise both
+  // call moveNodeTo() every frame and fight over the node's position — this
+  // generation token lets a new drag invalidate any animation still in flight
   function animateNodeBack(id){
+    const myGen=(ANIM_GEN[id]=(ANIM_GEN[id]||0)+1);
     const from={...LIVE[id]}, to=POS[id], t0=performance.now(), dur=380;
     function step(t){
+      if(ANIM_GEN[id]!==myGen) return; // superseded by a new drag on this node
       const p=Math.min(1,(t-t0)/dur);
       const e=1-Math.pow(1-p,3);
       moveNodeTo(id, from.x+(to.x-from.x)*e, from.y+(to.y-from.y)*e);
@@ -341,6 +348,7 @@ function drawNetwork(){
   }
 
   function beginDrag(id){
+    ANIM_GEN[id]=(ANIM_GEN[id]||0)+1; // cancel any in-flight snap-back for this node
     NODE_EL[id].g.classList.add("dragging","label-hidden");
     preview(EDGES_BY_FIELD[id].map(e=>[e.a,e.b]));
   }

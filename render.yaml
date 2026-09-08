@@ -1,0 +1,17 @@
+# Render Blueprint — lets Render's "New +" > "Blueprint" flow (or the
+# Deploy-to-Render button in README.md) configure agent_server.py with no
+# manual build/start-command typing. The only thing you fill in by hand is
+# ANTHROPIC_API_KEY (Render prompts for it since it's marked sync: false,
+# so it's never committed to this file or the repo).
+services:
+  - type: web
+    name: fsu-research-atlas-agent
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python agent_server.py
+    envVars:
+      - key: ALLOWED_ORIGIN
+        value: https://epple3k.github.io
+      - key: ANTHROPIC_API_KEY
+        sync: false

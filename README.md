@@ -54,21 +54,24 @@ hands the page the exact field pairs the model looked up via `tools.py`'s
 ### Publishing to GitHub Pages, with the real AI
 
 GitHub Pages only serves static files — it cannot run `agent_server.py` (no
-Python, no long-lived process). The frontend and backend have to be hosted
-separately:
+Python, no long-lived process). The frontend and backend are hosted
+separately; both are set up in this repo to need as few manual steps as
+possible.
 
-1. **Deploy `agent_server.py` somewhere that runs a server.** [Render](https://render.com)'s
-   free Web Service tier needs no Dockerfile:
-   - New → Web Service → connect this repo.
-   - Build command: `pip install -r requirements.txt`
-   - Start command: `python agent_server.py`
-   - Add environment variables:
-     - `ANTHROPIC_API_KEY` = your key (as a secret)
-     - `ALLOWED_ORIGIN` = `https://<your-username>.github.io` (your exact Pages
-       URL — this locks the API to your page so random sites can't spend your
-       Anthropic budget through it)
-   - Render sets `PORT` for you automatically; the server already reads it.
-   - Deploy, then copy the resulting URL (e.g. `https://fsu-research-atlas.onrender.com`).
+1. **Deploy `agent_server.py` to Render.** `render.yaml` in this repo is a
+   [Render Blueprint](https://render.com/docs/blueprint-spec) — Render reads
+   it and configures the build/start commands and `ALLOWED_ORIGIN` itself:
+
+   [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Epple3k/fsu-research-atlas-2)
+
+   Click it, sign in (or create a free account) and authorize Render to read
+   this repo, then approve the blueprint. The only field you type by hand is
+   `ANTHROPIC_API_KEY` — Render prompts for it as a secret because
+   `render.yaml` marks it `sync: false`, so it's never written to the repo.
+
+   Once it deploys, copy the service's URL from the Render dashboard (looks
+   like `https://fsu-research-atlas-agent.onrender.com`).
+
    - **Set a spend limit / usage alert in your Anthropic console.** The rate
      limiting and origin check in `agent_server.py` are reasonable guards for
      a small demo, not a substitute for that — a determined caller can still
@@ -76,20 +79,22 @@ separately:
    - Free instances sleep after inactivity; the first request after a sleep
      can take 30–50s to wake up. The page's "Thinking…" state and its
      45-second request timeout are already sized for this.
+   - If you rename the service (or it's already taken), Render appends
+     characters to keep the URL unique — always use the exact URL Render
+     shows you, not the one guessed above.
 
 2. **Point the page at that URL.** In `web/index.html`, find
-   `PRODUCTION_AGENT_BASE` near the top of the script and set it to your
-   Render URL. This is the one edit the file needs before publishing — locally
-   it still talks to `http://localhost:8765` automatically.
+   `PRODUCTION_AGENT_BASE` near the top of the script and set it to the
+   Render URL from step 1. This is the one edit the file needs before
+   publishing — locally it still talks to `http://localhost:8765`
+   automatically. Commit and push that change.
 
-3. **Publish `web/` to GitHub Pages.** Pages only serves from a repo's root or
-   a `/docs` folder, not an arbitrary subfolder, so either:
-   - copy/move `web/`'s contents to `/docs` (or the repo root) and point
-     Pages at that, or
-   - add a small GitHub Action that publishes the `web/` folder to a
-     `gh-pages` branch.
-
-   Then in the repo's Settings → Pages, pick that branch/folder as the source.
+3. **Turn on GitHub Pages via the included Action.** `.github/workflows/pages.yml`
+   publishes just the `web/` folder as the site root — no `/web/` in the URL,
+   and it redeploys on every push to `main`. One manual step: in the repo's
+   **Settings → Pages**, set **Build and deployment → Source** to
+   **GitHub Actions** (not "Deploy from a branch"). The workflow runs
+   automatically after that.
 
 Without step 1–2, the static page still works fine on Pages — it just uses the
 deterministic interpreter, same as running it locally with no `agent_server.py`.
@@ -150,6 +155,8 @@ research question is about.
 | `agent.py` | optional LLM orchestration over those tools |
 | `agent_server.py` | optional local HTTP API putting `agent.py` behind the Ask box |
 | `web/index.html` | the explorer UI |
+| `render.yaml` | Render Blueprint for one-click `agent_server.py` deployment |
+| `.github/workflows/pages.yml` | publishes `web/` to GitHub Pages as the site root |
 
 ---
 
