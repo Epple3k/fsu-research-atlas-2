@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FSU Research Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#EDF0F4; --panel:#FFFFFF; --line:#DBE0E8; --line-strong:#C3CAD5;
+    --ink:#16202C; --muted:#5B6675; --faint:#9AA4B2;
+    --evidence:#A8641E;        /* the "look at the proof" accent */
+    --evidence-soft:#F4E7D6;
+    --sans:"Space Grotesk",system-ui,sans-serif;
+    --serif:"Newsreader",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--ground); color:var(--ink); font-family:var(--sans);
+    font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .app{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(340px,0.85fr);
+    grid-template-rows:auto 1fr; height:100vh; max-height:100vh; overflow:hidden}
+  header{grid-column:1 / -1; display:flex; align-items:baseline; gap:16px;
+    padding:16px 22px; border-bottom:1px solid var(--line); background:var(--panel)}
+  header h1{font-size:17px; font-weight:600; margin:0; letter-spacing:-0.01em}
+  header .sub{font-size:12.5px; color:var(--muted)}
+  header .meta{margin-left:auto; font-size:12px; color:var(--faint); text-align:right}
+  .badge{display:inline-block; background:var(--evidence-soft); color:var(--evidence);
+    padding:2px 8px; border-radius:999px; font-size:11px; font-weight:500}
+  .badge-live{background:var(--ink); color:var(--panel)}
+
+  /* left: the network */
+  .stage{position:relative; overflow:hidden; min-width:0; min-height:0}
+  svg{position:absolute; inset:0; width:100%; height:100%; display:block}
+  svg *{-webkit-user-select:none; -moz-user-select:none; user-select:none; -webkit-user-drag:none; touch-action:none}
+  .edge{fill:none; stroke:#8894A4; stroke-linecap:round; transition:stroke .25s,stroke-width .25s,opacity .25s}
+  .edge.dim{opacity:.05}
+  .edge.hot{stroke:var(--ink); opacity:.9}
+  .edge.dim-soft{opacity:.32}
+  .edge.hot-soft{stroke:var(--ink); opacity:.65}
+  .edge-hit{fill:none; stroke:transparent; stroke-width:14; cursor:pointer}
+  .node circle{fill:#8894A4; stroke:transparent; stroke-width:0; transition:opacity .25s, r .2s, fill .2s, stroke .15s; cursor:grab}
+  .node.dim{opacity:.22}
+  .node.dim-soft{opacity:.55}
+  .node.hot circle, .node.hot-soft circle{fill:var(--ink)}
+  .node.dragging{opacity:1 !important}
+  .node.dragging circle{cursor:grabbing; stroke:var(--ink); stroke-width:2px; transition:none}
+  .node.drop-target circle{stroke:var(--evidence); stroke-width:3px}
+  .node text{font-size:11px; fill:var(--ink); cursor:pointer; paint-order:stroke;
+    stroke:var(--ground); stroke-width:3px; transition:opacity .15s}
+  .node.hot text{font-weight:600}
+  .node.label-hidden text{opacity:0}
+  .hint{position:absolute; left:20px; bottom:16px; font-size:12px; color:var(--faint);
+    max-width:260px}
+  .tooltip{position:absolute; z-index:5; pointer-events:none; background:var(--ink); color:var(--ground);
+    font-size:11.5px; line-height:1.4; padding:6px 9px; border-radius:6px; max-width:240px;
+    opacity:0; transition:opacity .12s; transform:translate(-50%,-100%)}
+  .tooltip.show{opacity:.96}
+  .tooltip b{font-weight:600}
+
+  /* right: investigation */
+  .panel{background:var(--panel); border-left:1px solid var(--line);
+    display:flex; flex-direction:column; min-width:0; min-height:0}
+  .ask{padding:16px 20px; border-bottom:1px solid var(--line)}
+  .ask-row{display:flex; gap:8px}
+  .ask input{flex:1; min-width:0; font-family:var(--sans); font-size:14px;
+    padding:9px 12px; border:1px solid var(--line-strong); border-radius:8px; color:var(--ink)}
+  .ask input:focus{outline:none; border-color:var(--ink)}
+  .ask button{font-family:var(--sans); font-size:14px; font-weight:500; color:var(--panel);
+    background:var(--ink); border:0; border-radius:8px; padding:0 16px; cursor:pointer}
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
+  .chip{font-size:12px; color:var(--muted); background:var(--ground);
+    border:1px solid var(--line); border-radius:999px; padding:4px 10px; cursor:pointer}
+  .chip:hover{border-color:var(--ink); color:var(--ink)}
+
+  .scroll{overflow-y:auto; padding:18px 20px 40px; flex:1}
+  .interp{font-size:12.5px; color:var(--muted); margin:0 0 14px}
+  /* conclusions = serif; observations/claims carry their evidence inline */
+  .claim{border:1px solid var(--line); border-radius:10px; padding:11px 13px;
+    margin-bottom:9px; cursor:pointer; transition:border-color .15s, background .15s}
+  .claim:hover{border-color:var(--line-strong); background:#FBFCFD}
+  .claim.active{border-color:var(--evidence); background:var(--evidence-soft)}
+  .claim .headline{font-family:var(--serif); font-size:16.5px; line-height:1.35}
+  .claim .metric{font-family:var(--sans); font-weight:600}
+  .claim .cue{display:flex; align-items:center; gap:6px; margin-top:6px;
+    font-size:11.5px; color:var(--evidence)}
+  .claim .cue .dot{width:6px; height:6px; border-radius:50%; background:var(--evidence)}
+  .conclusion{font-family:var(--serif); font-style:italic; font-size:15px;
+    color:var(--muted); margin:14px 2px 0; line-height:1.45}
+
+  .evidence{margin-top:22px; border-top:1px solid var(--line); padding-top:16px}
+  .evidence h2{font-size:12px; font-weight:600; color:var(--muted); margin:0 0 4px}
+  .evidence .note{font-size:12px; color:var(--faint); margin:0 0 12px}
+  .paper{display:block; padding:8px 0; border-bottom:1px solid var(--line);
+    text-decoration:none; color:var(--ink)}
+  .paper:hover .t{text-decoration:underline}
+  .paper .t{font-size:13.5px; line-height:1.35}
+  .paper .m{font-size:11.5px; color:var(--faint); margin-top:2px}
+  .empty{color:var(--faint); font-size:13px; font-style:italic; font-family:var(--serif)}
+
+  @media (max-width:860px){
+    .app{grid-template-columns:1fr; grid-template-rows:auto 52vh auto}
+    .panel{border-left:0; border-top:1px solid var(--line)}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>FSU Research Explorer</h1>
+      <div class="sub">Ask about how research areas connect — then click any claim to see the papers behind it.</div>
+    </div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div class="stage">
+    <svg id="net" viewBox="0 0 760 760" preserveAspectRatio="xMidYMid meet" aria-label="Field collaboration network"></svg>
+    <div class="hint">Each arc is a set of papers that span two fields. Thicker = more shared work.</div>
+    <div class="tooltip" id="tooltip"></div>
+  </div>
+
+  <div class="panel">
+    <div class="ask">
+      <div class="ask-row">
+        <input id="q" placeholder="e.g. which areas are becoming more interdisciplinary?" autocomplete="off">
+        <button id="go">Ask</button>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="scroll" id="out"></div>
+  </div>
+</div>
+
+<script src="network-data.js" onerror="void 0"></script>
+<script>
+"use strict";
+
+// ---- load data (network-data.js sets window.NETWORK; fall back to fetch) ----
+async function loadNet(){
+  if (window.NETWORK) return window.NETWORK;
+  try { const r = await fetch("network.json"); if (r.ok) return await r.json(); }
+  catch(e){}
+  return null;
+}
+
+let NET, FN={}, POS={};   // POS: field id -> {x,y,angle} — each field's seriated "home" position
+let LIVE={};              // field id -> {x,y} — current on-screen position (== POS unless being dragged)
+let RAD={};               // field id -> node radius
+let NODE_EL={}, EDGE_ELS={}, EDGES_BY_FIELD={};
+let activeClaim=null;
+let activeEdgePairs=[];  // the committed (click-driven) highlight, restored after a hover preview ends
+let dragState=null;      // {id, moved, startX, startY} while a pointer-drag is in progress
+let dropTargetId=null;
+
+function fieldByName(q){
+  q=q.toLowerCase();
+  let hit=NET.fields.find(f=>f.name.toLowerCase()===q);
+  if(hit) return hit;
+  return NET.fields.find(f=>q.includes(f.name.toLowerCase()) || f.name.toLowerCase().includes(q)) || null;
+}
+function edgeKey(a,b){ return [a,b].sort().join("|"); }
+let EDGE_MAP={};
+
+// ---------- layout: order fields so strongly-linked ones sit adjacent ----------
+// (a greedy circular seriation over the edge weights already in the data —
+// no imposed taxonomy, the ordering falls out of actual collaboration structure)
+function seriateFields(fields, edges){
+  const w={};
+  edges.forEach(e=>{ w[edgeKey(e.a,e.b)]=e.weight; });
+  const wt=(a,b)=> w[edgeKey(a,b)]||0;
+  const total={}; fields.forEach(f=>total[f.id]=0);
+  edges.forEach(e=>{ total[e.a]+=e.weight; total[e.b]+=e.weight; });
+
+  const remaining=new Set(fields.map(f=>f.id));
+  let start=fields[0].id;
+  fields.forEach(f=>{ if(total[f.id]>total[start]) start=f.id; });
+  const order=[start]; remaining.delete(start);
+
+  while(remaining.size){
+    const last=order[order.length-1];
+    let best=null, bestW=-1;
+    remaining.forEach(id=>{ const w2=wt(last,id); if(w2>bestW){ bestW=w2; best=id; } });
+    if(bestW<=0){
+      // no direct link to the chain's end left unplaced — attach the next
+      // best-connected field overall to keep the ordering non-arbitrary
+      best=null; let bestTotal=-1;
+      remaining.forEach(id=>{ if(total[id]>bestTotal){ bestTotal=total[id]; best=id; } });
+    }
+    order.push(best); remaining.delete(best);
+  }
+  return order;
+}
+
+// pick the K weakest adjacent links in the seriated ring — that's where a
+// sector boundary (an angular gap) reads as true rather than decorative
+function sectorGapsAfter(order, edges){
+  const w={}; edges.forEach(e=>{ w[edgeKey(e.a,e.b)]=e.weight; });
+  const n=order.length;
+  const links=order.map((id,i)=>({i, w:w[edgeKey(id,order[(i+1)%n])]||0}));
+  const K=Math.max(2,Math.min(5,Math.round(n/6)));
+  links.sort((a,b)=>a.w-b.w);
+  return new Set(links.slice(0,K).map(l=>l.i));
+}
+
+// ---------- render the network ----------
+function drawNetwork(){
+  const svg=document.getElementById("net");
+  const cx=380, cy=380, R=250;
+  const fields=NET.fields;
+  const maxW=Math.max(...fields.map(f=>f.works));
+  const order=seriateFields(fields, NET.edges);
+  const gapAfter=sectorGapsAfter(order, NET.edges);
+  const gapSize=0.16; // radians per sector break
+  const n=order.length;
+  const step=(2*Math.PI - gapSize*gapAfter.size)/n;
+  let a=-Math.PI/2;
+  order.forEach((id,i)=>{
+    POS[id]={x:cx+R*Math.cos(a), y:cy+R*Math.sin(a), angle:a};
+    a+=step; if(gapAfter.has(i)) a+=gapSize;
+  });
+
+  const maxWeight=Math.max(...NET.edges.map(e=>e.weight));
+  let edgeSVG="";
+  NET.edges.forEach(e=>{
+    const p=POS[e.a], q=POS[e.b]; if(!p||!q) return;
+    // control point pulled toward centre for a chord-like bow
+    const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
+    const cxp=cx+(mx-cx)*0.35, cyp=cy+(my-cy)*0.35;
+    const ratio=e.weight/maxWeight;
+    const shaped=Math.pow(ratio,1.6); // convex: lets a handful of links dominate, the rest recede
+    const w=0.5+shaped*6.5;
+    const op=0.035+shaped*0.30;
+    const d=`M${p.x.toFixed(1)},${p.y.toFixed(1)} Q${cxp.toFixed(1)},${cyp.toFixed(1)} ${q.x.toFixed(1)},${q.y.toFixed(1)}`;
+    const k=edgeKey(e.a,e.b);
+    edgeSVG+=`<path class="edge" data-k="${k}" d="${d}" stroke-width="${w.toFixed(2)}" opacity="${op.toFixed(3)}"></path>`;
+    edgeSVG+=`<path class="edge-hit" data-k="${k}" d="${d}"></path>`;
+  });
+  RAD={};
+  let nodeSVG="";
+  fields.forEach(f=>{
+    const p=POS[f.id];
+    const r=5+Math.sqrt(f.works/maxW)*13;
+    RAD[f.id]=r;
+    const rightSide=Math.cos(p.angle)>=-0.01;
+    const lx=p.x+(rightSide?1:-1)*(r+7);
+    const anchor=rightSide?"start":"end";
+    nodeSVG+=`<g class="node" data-id="${f.id}">
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r.toFixed(1)}"></circle>
+      <text x="${lx.toFixed(1)}" y="${(p.y+3.5).toFixed(1)}" text-anchor="${anchor}">${f.name}</text>
+    </g>`;
+  });
+  svg.innerHTML=`<g id="edges">${edgeSVG}</g><g id="nodes">${nodeSVG}</g>`;
+
+  LIVE={}; fields.forEach(f=>{ LIVE[f.id]={x:POS[f.id].x, y:POS[f.id].y}; });
+  NODE_EL={};
+  svg.querySelectorAll(".node").forEach(g=>{
+    NODE_EL[g.dataset.id]={g, circle:g.querySelector("circle"), text:g.querySelector("text")};
+  });
+  EDGE_ELS={};
+  svg.querySelectorAll(".edge").forEach(el=>{ EDGE_ELS[el.dataset.k]={ ...(EDGE_ELS[el.dataset.k]||{}), path:el }; });
+  svg.querySelectorAll(".edge-hit").forEach(el=>{ EDGE_ELS[el.dataset.k]={ ...(EDGE_ELS[el.dataset.k]||{}), hit:el }; });
+  EDGES_BY_FIELD={}; fields.forEach(f=>EDGES_BY_FIELD[f.id]=[]);
+  NET.edges.forEach(e=>{ EDGES_BY_FIELD[e.a].push(e); EDGES_BY_FIELD[e.b].push(e); });
+
+  const stage=document.querySelector(".stage");
+  const tip=document.getElementById("tooltip");
+  function moveTip(evt){
+    const r=stage.getBoundingClientRect();
+    tip.style.left=(evt.clientX-r.left)+"px";
+    tip.style.top=(evt.clientY-r.top-12)+"px";
+  }
+  function showTip(html,evt){ tip.innerHTML=html; tip.classList.add("show"); moveTip(evt); }
+  function hideTip(){ tip.classList.remove("show"); }
+
+  function svgPoint(evt){
+    const pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  // redraw every edge touching `id` using its current LIVE position(s)
+  function recomputeEdgesFor(id){
+    EDGES_BY_FIELD[id].forEach(e=>{
+      const other=e.a===id?e.b:e.a;
+      const k=edgeKey(e.a,e.b), els=EDGE_ELS[k]; if(!els) return;
+      const p=LIVE[id], q=LIVE[other];
+      const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
+      const cxp=cx+(mx-cx)*0.35, cyp=cy+(my-cy)*0.35;
+      const d=`M${p.x.toFixed(1)},${p.y.toFixed(1)} Q${cxp.toFixed(1)},${cyp.toFixed(1)} ${q.x.toFixed(1)},${q.y.toFixed(1)}`;
+      els.path.setAttribute("d",d); els.hit.setAttribute("d",d);
+    });
+  }
+  function moveNodeTo(id,x,y){
+    LIVE[id]={x,y};
+    NODE_EL[id].circle.setAttribute("cx",x.toFixed(1));
+    NODE_EL[id].circle.setAttribute("cy",y.toFixed(1));
+    recomputeEdgesFor(id);
+  }
+
+  function updateDropTarget(id,x,y,evt){
+    let best=null, bestOverlap=0;
+    fields.forEach(f=>{
+      if(f.id===id) return;
+      const q=LIVE[f.id];
+      const dist=Math.hypot(x-q.x,y-q.y);
+      const overlap=(RAD[id]+RAD[f.id])-dist;
+      if(overlap>bestOverlap){ bestOverlap=overlap; best=f.id; }
+    });
+    if(best!==dropTargetId){
+      if(dropTargetId) NODE_EL[dropTargetId].g.classList.remove("drop-target");
+      dropTargetId=best;
+      if(dropTargetId) NODE_EL[dropTargetId].g.classList.add("drop-target");
+    }
+    const A=FN[id];
+    if(dropTargetId){
+      const B=FN[dropTargetId]; const e=EDGE_MAP[edgeKey(id,dropTargetId)];
+      showTip(e? `<b>${escapeHtml(A.name)}</b> &harr; <b>${escapeHtml(B.name)}</b><br>${e.weight} shared papers — release to inspect`
+                : `<b>${escapeHtml(A.name)}</b> &harr; <b>${escapeHtml(B.name)}</b><br>no shared work in this data`, evt);
+    } else {
+      showTip(`<b>${escapeHtml(A.name)}</b><br>drag onto another field to compare`, evt);
+    }
+  }
+  function clearDropTarget(){
+    if(dropTargetId){ NODE_EL[dropTargetId].g.classList.remove("drop-target"); dropTargetId=null; }
+  }
+
+  function animateNodeBack(id){
+    const from={...LIVE[id]}, to=POS[id], t0=performance.now(), dur=380;
+    function step(t){
+      const p=Math.min(1,(t-t0)/dur);
+      const e=1-Math.pow(1-p,3);
+      moveNodeTo(id, from.x+(to.x-from.x)*e, from.y+(to.y-from.y)*e);
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function beginDrag(id){
+    NODE_EL[id].g.classList.add("dragging","label-hidden");
+    preview(EDGES_BY_FIELD[id].map(e=>[e.a,e.b]));
+  }
+  function finishDrag(id, moved){
+    NODE_EL[id].g.classList.remove("dragging","label-hidden");
+    if(!moved){ const f=FN[id]; if(f) run(`what does ${f.name} connect to?`); return; }
+    const target=dropTargetId; clearDropTarget(); hideTip();
+    animateNodeBack(id);
+    if(target){ const A=FN[id], B=FN[target]; run(`${A.name} and ${B.name}`); }
+    else endPreview();
+  }
+
+  svg.querySelectorAll(".node").forEach(g=>{
+    const id=g.dataset.id, f=FN[id];
+    g.addEventListener("dragstart",evt=>evt.preventDefault());
+    g.addEventListener("pointerdown",evt=>{
+      if(evt.button!==0) return;
+      evt.preventDefault(); // stop native text-selection / element drag-out hijacking the gesture
+      // reorder to the front BEFORE capturing the pointer, never after — reparenting
+      // an element that already holds pointer capture can make some browsers drop
+      // the capture mid-gesture (the DOM insert algorithm briefly "disconnects" the
+      // node), which silently orphans pointermove/pointerup and wedges dragState
+      g.parentNode.appendChild(g);
+      g.setPointerCapture(evt.pointerId);
+      const p0=svgPoint(evt);
+      dragState={id, moved:false, startX:evt.clientX, startY:evt.clientY,
+        offX:POS[id].x-p0.x, offY:POS[id].y-p0.y};
+    });
+    g.addEventListener("pointermove",evt=>{
+      if(!dragState||dragState.id!==id) return;
+      if(!dragState.moved){
+        if(Math.hypot(evt.clientX-dragState.startX, evt.clientY-dragState.startY)<4) return;
+        dragState.moved=true; beginDrag(id);
+      }
+      const p=svgPoint(evt);
+      const x=p.x+dragState.offX, y=p.y+dragState.offY;
+      moveNodeTo(id,x,y);
+      updateDropTarget(id,x,y,evt);
+    });
+    // pointerup / pointercancel / lostpointercapture can all fire for the same
+    // gesture (releasing capture itself triggers lostpointercapture), so clear
+    // dragState BEFORE calling finishDrag — whichever handler runs first "wins"
+    // and the other(s) become no-ops instead of double-firing the drop logic
+    g.addEventListener("pointerup",evt=>{
+      if(!dragState||dragState.id!==id) return;
+      const moved=dragState.moved; dragState=null;
+      g.releasePointerCapture(evt.pointerId);
+      finishDrag(id,moved);
+    });
+    g.addEventListener("pointercancel",()=>{
+      if(!dragState||dragState.id!==id) return;
+      const moved=dragState.moved; dragState=null;
+      finishDrag(id,moved);
+    });
+    // belt-and-suspenders: if capture is ever lost mid-gesture for any other
+    // reason (browser quirk, alt-tab, etc.) without pointerup/pointercancel
+    // firing, this still catches it — a drag can never wedge state forever
+    g.addEventListener("lostpointercapture",()=>{
+      if(!dragState||dragState.id!==id) return;
+      const moved=dragState.moved; dragState=null;
+      finishDrag(id,moved);
+    });
+    g.addEventListener("mousemove",moveTip);
+    g.addEventListener("mouseenter",evt=>{
+      if(dragState) return;
+      const links=EDGES_BY_FIELD[f.id];
+      const shared=links.reduce((s,e)=>s+e.weight,0);
+      preview(links.map(e=>[e.a,e.b]));
+      showTip(`<b>${escapeHtml(f.name)}</b><br>${links.length} linked fields · ${shared.toLocaleString()} shared papers`,evt);
+    });
+    g.addEventListener("mouseleave",()=>{ if(dragState) return; endPreview(); hideTip(); });
+  });
+  // hovering an edge previews just that link
+  svg.querySelectorAll(".edge-hit").forEach(hit=>{
+    hit.addEventListener("mousemove",evt=>{ if(!dragState) moveTip(evt); });
+    hit.addEventListener("mouseenter",evt=>{
+      if(dragState) return;
+      const e=EDGE_MAP[hit.dataset.k]; if(!e) return;
+      const A=FN[e.a], B=FN[e.b];
+      preview([[e.a,e.b]]);
+      const delta=e.delta_pct!=null?` · ${signed(e.delta_pct)} since 2022`:"";
+      showTip(`<b>${escapeHtml(A.name)}</b> &harr; <b>${escapeHtml(B.name)}</b><br>${e.weight} shared papers${delta}`,evt);
+    });
+    hit.addEventListener("mouseleave",()=>{ if(dragState) return; endPreview(); hideTip(); });
+  });
+}
+
+// paint the given edge/node pairs as "on"; everything else fades by `tier`
+function paint(edgePairs, tier){
+  const keys=new Set(edgePairs.map(p=>edgeKey(p[0],p[1])));
+  const fieldsOn=new Set(edgePairs.flat());
+  const hotClass=tier==="preview"?"hot-soft":"hot";
+  const dimClass=tier==="preview"?"dim-soft":"dim";
+  const otherHot=tier==="preview"?"hot":"hot-soft";
+  const otherDim=tier==="preview"?"dim":"dim-soft";
+  document.querySelectorAll(".edge").forEach(el=>{
+    const on=keys.has(el.dataset.k);
+    el.classList.remove(otherHot,otherDim);
+    el.classList.toggle(hotClass,on); el.classList.toggle(dimClass,keys.size>0 && !on);
+  });
+  document.querySelectorAll(".node").forEach(el=>{
+    const on=fieldsOn.has(el.dataset.id);
+    el.classList.remove(otherHot,otherDim);
+    el.classList.toggle(hotClass,on); el.classList.toggle(dimClass,fieldsOn.size>0 && !on);
+  });
+}
+// highlight a set of edges (array of [a,b]) and the fields they touch — this is
+// the committed, click-driven state that a hover preview temporarily overrides
+function highlight(edgePairs){ activeEdgePairs=edgePairs; paint(edgePairs,"active"); }
+function clearHighlight(){ activeEdgePairs=[]; paint([],"active"); }
+// a lighter, transient preview shown on hover; leaving restores the committed state
+function preview(edgePairs){ paint(edgePairs,"preview"); }
+function endPreview(){ paint(activeEdgePairs,"active"); }
+
+// ---------- evidence: resolve work ids / links to papers ----------
+function papersFor(workIds){
+  const seen=new Set(), out=[];
+  for(const id of workIds){
+    if(seen.has(id)||!NET.works[id]) continue; seen.add(id);
+    const w=NET.works[id];
+    out.push({id, title:w.t, year:w.y, url:"https://openalex.org/"+id});
+  }
+  return out;
+}
+function edgeWorkIds(a,b){
+  const k=EDGE_MAP[edgeKey(a,b)];
+  return k? k.work_ids : [];
+}
+
+function showEvidence(claim){
+  const el=document.getElementById("evidence");
+  const papers=papersFor(claim.work_ids||[]);
+  let html=`<h2>Evidence</h2><p class="note">${claim.evidenceNote||"Papers supporting this claim."}</p>`;
+  if(papers.length===0){ html+=`<p class="empty">No individual papers stored for this claim.</p>`; }
+  papers.forEach(p=>{
+    html+=`<a class="paper" href="${p.url}" target="_blank" rel="noopener">
+      <div class="t">${escapeHtml(p.title)}</div>
+      <div class="m">${p.year||""} · ${p.id} · opens on OpenAlex</div></a>`;
+  });
+  el.innerHTML=html;
+}
+
+function escapeHtml(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+// ---------- the local interpreter: question -> claims with provenance ----------
+// (agent.py provides the real LLM version for open-ended questions.)
+
+// split "Biochemistry, Genetics and Molecular Biology" into independently
+// matchable tokens — the old code only ever checked text before the first comma,
+// so "genetics" or "molecular biology" could never match that field
+function fieldTokens(f){
+  return f.name.toLowerCase().split(/,| and /).map(s=>s.trim()).filter(s=>s.length>2);
+}
+function fieldsMentioned(q){
+  return NET.fields.filter(f=>fieldTokens(f).some(t=>q.includes(t)));
+}
+function fieldDegree(f){ return NET.edges.reduce((n,e)=>n+((e.a===f.id||e.b===f.id)?1:0),0); }
+
+const INTENT_RE=/connect|collaborat|partner|interdisc|becoming|grow|rising|emerg|chang|most|strong|top|interconnect|link|between|central|hub|biggest|largest|smallest|isolated|fewest|least|list|show.*field/;
+
+function interpret(qRaw){
+  const q=qRaw.toLowerCase().trim();
+  const named=fieldsMentioned(q);
+
+  // two fields named together -> the direct link between them
+  if(named.length>=2){
+    const [A,B]=named; const e=EDGE_MAP[edgeKey(A.id,B.id)];
+    if(e){
+      return {interp:`Looking at the direct link between ${A.name} and ${B.name}.`,
+        claims:[mkLink(A,B,e,true)], conclusion:e.delta_pct!=null?
+          `Between the 2018–2021 and 2022–2026 windows this link changed ${signed(e.delta_pct)}.`:""};
+    }
+    return {interp:`No shared interdisciplinary works between ${A.name} and ${B.name} in this data.`,claims:[]};
+  }
+
+  // one field named, or a question about the biggest / smallest / most-central /
+  // most-isolated field -> resolve which field, then show its strongest links
+  let F=named[0]||null, note="";
+  if(!F && /biggest|largest/.test(q)){
+    F=NET.fields.reduce((a,b)=>b.works>a.works?b:a);
+    note=`${F.name} is FSU's largest tracked field by total works (${F.works.toLocaleString()}). `;
+  }
+  if(!F && /smallest/.test(q)){
+    F=NET.fields.reduce((a,b)=>b.works<a.works?b:a);
+    note=`${F.name} is FSU's smallest tracked field by total works (${F.works.toLocaleString()}). `;
+  }
+  if(!F && /central|hub|most connect|most link/.test(q)){
+    F=NET.fields.reduce((a,b)=>fieldDegree(b)>fieldDegree(a)?b:a);
+    note=`${F.name} links to the most other fields (${fieldDegree(F)} of them). `;
+  }
+  if(!F && /isolated|fewest|least connect/.test(q)){
+    F=NET.fields.reduce((a,b)=>fieldDegree(b)<fieldDegree(a)?b:a);
+    note=`${F.name} links to the fewest other fields (${fieldDegree(F)} of them) in this data. `;
+  }
+  if(F){
+    const links=NET.edges.filter(e=>e.a===F.id||e.b===F.id).sort((a,b)=>b.weight-a.weight).slice(0,6);
+    return {interp:`${note}${F.name}’s strongest cross-field links, by shared works.`,
+      claims:links.map(e=>mkLink(F,FN[e.a===F.id?e.b:e.a],e)),
+      conclusion:links.length?`Click any link to read the specific ${F.name} papers behind it.`
+        :`${F.name} has no recorded interdisciplinary links in this data.`};
+  }
+
+  // "becoming more interdisciplinary" / growing
+  if(/interdisc|becoming|grow|rising|emerg|chang/.test(q)){
+    const grown=NET.edges.filter(e=>e.delta_pct!=null && e.weight>=8)
+      .sort((a,b)=>b.delta_pct-a.delta_pct).slice(0,6);
+    return {interp:`Cross-field links that grew fastest from 2018–2021 to 2022–2026 (only links with enough works to be meaningful).`,
+      claims:grown.map(e=>mkLink(FN[e.a],FN[e.b],e,true)),
+      conclusion:`“More interdisciplinary” here means a pair of fields sharing more papers over time — each figure traces back to the works themselves.`};
+  }
+
+  // listing every tracked field
+  if(/list|show.*field/.test(q)){
+    const bySize=NET.fields.slice().sort((a,b)=>b.works-a.works);
+    const top=NET.edges.slice(0,6);
+    return {interp:`FSU tracks ${NET.fields.length} research areas, by total works: `+
+        bySize.map(f=>`${f.name} (${f.works.toLocaleString()})`).join(", ")+".",
+      claims:top.map(e=>mkLink(FN[e.a],FN[e.b],e)),
+      conclusion:`Click any link below to inspect the papers behind the strongest overall connections.`};
+  }
+
+  // "most interconnected / strongest / top / which links"
+  if(/most|strong|top|interconnect|connect|collaborat|link|between/.test(q)){
+    const top=NET.edges.slice(0,6);
+    return {interp:`The strongest cross-field links across FSU research, by number of shared works.`,
+      claims:top.map(e=>mkLink(FN[e.a],FN[e.b],e)),
+      conclusion:`These are observations from the data. Click one to inspect the papers and judge the interpretation yourself.`};
+  }
+
+  // genuinely unrelated to the dataset — say so plainly rather than faking an answer
+  if(!INTENT_RE.test(q)){
+    return {interp:`“${escapeHtml(qRaw)}” doesn’t look like something this dataset can answer — it only covers cross-field research collaboration at FSU (2018–2026). Try naming a field (“what does Chemistry connect to?”), two fields together (“Physics and Chemistry”), or asking which areas are most or least interconnected.`,
+      claims:[], conclusion:""};
+  }
+
+  // recognisably about the dataset, but not a shape this stand-in parses yet
+  const top=NET.edges.slice(0,6);
+  return {interp:`I don’t have a specific reading for “${escapeHtml(qRaw)}” yet. This box (a lightweight stand-in for the AI agent) understands: the most interconnected areas, which areas are becoming more interdisciplinary, the biggest/smallest/most-central field, a single field like “what does Chemistry connect to?”, or two fields together like “Physics and Chemistry.” Open-ended questions are what agent.py is built for. Meanwhile — the strongest links overall:`,
+    claims:top.map(e=>mkLink(FN[e.a],FN[e.b],e)),
+    conclusion:``};
+}
+function signed(n){return (n>=0?"+":"")+n+"%";}
+
+// build a clickable claim for a link between two fields
+function mkLink(A,B,e,showDelta){
+  const delta = e.delta_pct!=null ? ` <span class="metric">${signed(e.delta_pct)}</span> since 2022` : "";
+  const headline = `<span class="metric">${A.name}</span> and <span class="metric">${B.name}</span> share `+
+                   `<span class="metric">${e.weight}</span> papers${showDelta?delta:""}.`;
+  return {
+    headline,
+    edges:[[A.id,B.id]],
+    work_ids:e.work_ids,
+    evidenceNote:`${e.weight} interdisciplinary works link ${A.name} and ${B.name}` +
+      (e.delta_pct!=null?` (${e.early} in 2018–2021, ${e.late} in 2022–2026).`:"."),
+  };
+}
+
+// ---------- render an investigation ----------
+function render(inv){
+  activeClaim=null;
+  const out=document.getElementById("out");
+  const liveTag=inv.live?`<span class="badge badge-live">answered live</span> `:"";
+  let html=`<p class="interp">${liveTag}${escapeHtml(inv.interp)}</p>`;
+  inv.claims.forEach((c,i)=>{
+    html+=`<div class="claim" data-i="${i}">
+      <div class="headline">${c.headline}</div>
+      <div class="cue"><span class="dot"></span>click to see the papers behind this</div>
+    </div>`;
+  });
+  if(inv.conclusion) html+=`<p class="conclusion">${escapeHtml(inv.conclusion)}</p>`;
+  html+=`<div class="evidence" id="evidence"><h2>Evidence</h2><p class="note">Select a claim above to load its papers here.</p></div>`;
+  out.innerHTML=html;
+  out.scrollTop=0;
+
+  const claimEls=[...out.querySelectorAll(".claim")];
+  claimEls.forEach(el=>{
+    const c=inv.claims[+el.dataset.i];
+    el.addEventListener("click",()=>{
+      claimEls.forEach(x=>x.classList.remove("active"));
+      el.classList.add("active");
+      highlight(c.edges);
+      showEvidence(c);
+    });
+  });
+
+  // auto-select the first claim so the loop is visible immediately
+  if(claimEls.length){ claimEls[0].click(); } else { clearHighlight(); }
+}
+
+// ---------- the real agent, when agent_server.py is running ----------
+// (see README / agent_server.py: a tiny local HTTP server that puts agent.py's
+// real Claude+tools agent behind an API the Ask box can call)
+//
+// Locally this talks to your own agent_server.py on localhost. Once you
+// deploy the backend (see README's GitHub Pages section) and this page is
+// served from somewhere other than localhost, edit PRODUCTION_AGENT_BASE
+// below to that deployed URL — that's the one line this file needs changed
+// before publishing.
+const PRODUCTION_AGENT_BASE="https://YOUR-BACKEND-HOST.example.com";
+const AGENT_BASE=(location.hostname==="localhost"||location.hostname==="127.0.0.1")
+  ? "http://localhost:8765" : PRODUCTION_AGENT_BASE;
+let AGENT_STATUS="unknown"; // "online" | "offline"
+
+// only used to paint the badge before the first real question is asked —
+// a free-tier host can take 30-50s to wake from a cold start, so this is a
+// display hint, not a gate: run() always attempts the real agent regardless
+// of what this found, so a slow/failed probe here can never permanently
+// disable it for the rest of the session
+async function checkAgent(){
+  try{
+    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),5000);
+    const res=await fetch(AGENT_BASE+"/health",{signal:ctrl.signal});
+    clearTimeout(t);
+    AGENT_STATUS=res.ok?"online":"offline";
+  }catch(e){ AGENT_STATUS="offline"; }
+  updateAgentBadge();
+}
+function updateAgentBadge(){
+  const el=document.getElementById("agent-status"); if(!el) return;
+  el.textContent=AGENT_STATUS==="online"
+    ? "AI agent connected — ask anything"
+    : "Demo interpreter — run agent_server.py for the real AI";
+  el.classList.toggle("badge-live",AGENT_STATUS==="online");
+}
+
+// the server only ever hands back which real edges (field-id pairs) the model
+// looked up via link_papers, plus its prose — we build the actual clickable
+// claims ourselves from network-data.js, so nothing can appear on screen
+// without a real edge (and real papers) behind it
+async function askAgent(question){
+  let res;
+  try{
+    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),45000);
+    res=await fetch(AGENT_BASE+"/ask",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({question}), signal:ctrl.signal});
+    clearTimeout(t);
+  }catch(err){
+    // couldn't even reach the server (network error, timeout, DNS, CORS) —
+    // that's the server being unreachable, not this question being invalid
+    AGENT_STATUS="offline"; updateAgentBadge();
+    return null;
+  }
+  if(res.status>=500){ AGENT_STATUS="offline"; updateAgentBadge(); return null; }
+  const data=await res.json().catch(()=>({error:"bad response from agent"}));
+  if(!res.ok||data.error){
+    // a 4xx (bad question, rate limit, etc.) — the server is fine, just this
+    // question wasn't answerable live; fall back for this one query only
+    return null;
+  }
+  AGENT_STATUS="online"; updateAgentBadge();
+  const claims=(data.edgePairs||[]).map(([a,b])=>{
+    const e=EDGE_MAP[edgeKey(a,b)];
+    return e?mkLink(FN[a],FN[b],e,true):null;
+  }).filter(Boolean);
+  return {interp:data.interp||"", claims, conclusion:data.conclusion||"", live:true};
+}
+
+// every user-driven question tries the real agent first (a genuinely absent
+// server fails to connect almost instantly, so this costs nothing when
+// there's no backend at all — see askAgent's cold-start comment for why this
+// isn't gated on AGENT_STATUS)
+async function run(question){
+  document.getElementById("q").value=question;
+  document.getElementById("out").innerHTML=`<p class="interp">Thinking…</p>`;
+  const viaAgent=await askAgent(question);
+  render(viaAgent||interpret(question));
+}
+
+// ---------- boot ----------
+(async function(){
+  NET=await loadNet();
+  const out=document.getElementById("out");
+  if(!NET){
+    out.innerHTML=`<p class="empty">Couldn’t load the data. If you opened this file directly and see nothing, run a tiny server in this folder:<br><br><code>python -m http.server 8000</code><br><br>then open <code>http://localhost:8000</code>. Or run <code>python fetch_openalex.py</code> to generate the data.</p>`;
+    return;
+  }
+  FN={}; NET.fields.forEach(f=>FN[f.id]=f);
+  EDGE_MAP={}; NET.edges.forEach(e=>EDGE_MAP[edgeKey(e.a,e.b)]=e);
+
+  const m=NET.meta||{};
+  document.getElementById("meta").innerHTML =
+    `${escapeHtml(m.institution||"")} · ${escapeHtml(m.years||"")}<br>`+
+    `${(m.interdisc_work_count||0).toLocaleString()} interdisciplinary works · ${NET.edges.length} links`+
+    (m.sample?`<br><span class="badge">sample data — run fetch_openalex.py for the real thing</span>`:``)+
+    `<br><span class="badge" id="agent-status">checking agent…</span>`;
+
+  const chips=["which areas are becoming more interdisciplinary?",
+               "which research areas are most interconnected?",
+               "what does Computer Science connect to?",
+               "Environmental Science and Social Sciences"];
+  document.getElementById("chips").innerHTML=chips.map(c=>`<span class="chip">${escapeHtml(c)}</span>`).join("");
+  document.querySelectorAll(".chip").forEach(el=>el.addEventListener("click",()=>run(el.textContent)));
+
+  document.getElementById("go").addEventListener("click",()=>run(document.getElementById("q").value||chips[0]));
+  document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") run(e.target.value||chips[0]); });
+
+  drawNetwork();
+  // first paint is always instant/deterministic — never block it on a possibly
+  // cold backend. Subsequent questions (chips, typed, drag-compare) go through
+  // run(), which always tries the real agent first regardless of this probe.
+  const firstQuestion="which research areas are most interconnected?";
+  document.getElementById("q").value=firstQuestion;
+  render(interpret(firstQuestion));
+  checkAgent();
+})();
+</script>
+</body>
+</html>

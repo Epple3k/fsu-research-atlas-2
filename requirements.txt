@@ -1,0 +1,2 @@
+anthropic>=0.40  # only needed for agent.py / agent_server.py (the optional LLM layer)
+# everything else uses the Python standard library
