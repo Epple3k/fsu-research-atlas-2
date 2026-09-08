@@ -113,11 +113,18 @@ def run_agent(question, path="web/network.json"):
     text = ""
     for _ in range(MAX_TOOL_TURNS):
         resp = client.messages.create(
-            model=MODEL, max_tokens=800, system=SYSTEM,
+            # claude-sonnet-5 runs adaptive thinking by default, which spends
+            # tokens from this same budget before any tool call or text is
+            # emitted — 800 was low enough that harder questions could hit
+            # max_tokens mid-plan (stop_reason "max_tokens", not "tool_use"),
+            # silently dropping the tool call before it ever ran
+            model=MODEL, max_tokens=4096, system=SYSTEM,
             tools=tools.TOOL_SCHEMA, messages=messages,
         )
         tool_uses = [b for b in resp.content if b.type == "tool_use"]
         text = "".join(b.text for b in resp.content if b.type == "text")
+        print(f"[agent_server] turn stop_reason={resp.stop_reason} "
+              f"tool_calls={[tu.name for tu in tool_uses]}", file=sys.stderr)
         if resp.stop_reason != "tool_use":
             break
 
@@ -143,6 +150,8 @@ def run_agent(question, path="web/network.json"):
                             "content": json.dumps(result)})
         messages.append({"role": "user", "content": results})
 
+    print(f"[agent_server] done: {len(edge_pairs)} edge(s) captured, "
+          f"final text len={len(text)}", file=sys.stderr)
     return finalize(text, edge_pairs)
 
 
