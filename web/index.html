@@ -32,6 +32,10 @@
   .badge{display:inline-block; background:var(--evidence-soft); color:var(--evidence);
     padding:2px 8px; border-radius:999px; font-size:11px; font-weight:500}
   .badge-live{background:var(--ink); color:var(--panel)}
+  .header-actions{margin-left:auto; display:flex; align-items:center; gap:14px}
+  .case-link{font-size:12px; color:var(--muted); text-decoration:none; white-space:nowrap}
+  .case-link:hover,.case-link:focus-visible{color:var(--ink); text-decoration:underline}
+  .study-note{font-size:12px; color:var(--faint); margin:0 0 12px}
 
   /* left: the network */
   .stage{position:relative; overflow:hidden; min-width:0; min-height:0}
@@ -105,6 +109,9 @@
   @media (max-width:860px){
     .app{grid-template-columns:1fr; grid-template-rows:auto 52vh auto}
     .panel{border-left:0; border-top:1px solid var(--line)}
+    header .sub{display:none}
+    .header-actions{gap:8px}
+    .case-link{font-size:11px}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -116,7 +123,10 @@
       <h1>FSU Research Explorer</h1>
       <div class="sub">Ask about how research areas connect — then click any claim to see the papers behind it.</div>
     </div>
-    <div class="meta" id="meta"></div>
+    <div class="header-actions">
+      <a class="case-link" href="case-study.html">Read the case study ↗</a>
+      <div class="meta" id="meta"></div>
+    </div>
   </header>
 
   <div class="stage">
@@ -140,6 +150,8 @@
 <script src="network-data.js" onerror="void 0"></script>
 <script>
 "use strict";
+
+const STUDY_MODE=new URLSearchParams(location.search).get("study")==="control"?"control":"full";
 
 // ---- load data (network-data.js sets window.NETWORK; fall back to fetch) ----
 async function loadNet(){
@@ -480,6 +492,10 @@ function edgeWorkIds(a,b){
 
 function showEvidence(claim){
   const el=document.getElementById("evidence");
+  if(STUDY_MODE==="control"){
+    el.innerHTML=`<h2>Source detail</h2><p class="note">Paper-level evidence is unavailable in this comparison version.</p>`;
+    return;
+  }
   const papers=papersFor(claim.work_ids||[]);
   let html=`<h2>Evidence</h2><p class="note">${claim.evidenceNote||"Papers supporting this claim."}</p>`;
   if(papers.length===0){ html+=`<p class="empty">No individual papers stored for this claim.</p>`; }
@@ -613,13 +629,16 @@ function render(inv){
   const liveTag=inv.live?`<span class="badge badge-live">answered live</span> `:"";
   let html=`<p class="interp">${liveTag}${escapeHtml(inv.interp)}</p>`;
   inv.claims.forEach((c,i)=>{
+    const cue=STUDY_MODE==="control"?"click to highlight this relationship":"click to see the papers behind this";
     html+=`<div class="claim" data-i="${i}">
       <div class="headline">${c.headline}</div>
-      <div class="cue"><span class="dot"></span>click to see the papers behind this</div>
+      <div class="cue"><span class="dot"></span>${cue}</div>
     </div>`;
   });
   if(inv.conclusion) html+=`<p class="conclusion">${escapeHtml(inv.conclusion)}</p>`;
-  html+=`<div class="evidence" id="evidence"><h2>Evidence</h2><p class="note">Select a claim above to load its papers here.</p></div>`;
+  html+=STUDY_MODE==="control"
+    ?`<div class="evidence" id="evidence"><h2>Source detail</h2><p class="note">Paper-level evidence is unavailable in this comparison version.</p></div>`
+    :`<div class="evidence" id="evidence"><h2>Evidence</h2><p class="note">Select a claim above to load its papers here.</p></div>`;
   out.innerHTML=html;
   out.scrollTop=0;
 
@@ -733,6 +752,7 @@ async function run(question){
   document.getElementById("meta").innerHTML =
     `${escapeHtml(m.institution||"")} · ${escapeHtml(m.years||"")}<br>`+
     `${(m.interdisc_work_count||0).toLocaleString()} interdisciplinary works · ${NET.edges.length} links`+
+    (STUDY_MODE==="control"?`<br><span class="badge">comparison view</span>`:"")+
     (m.sample?`<br><span class="badge">sample data — run fetch_openalex.py for the real thing</span>`:``)+
     `<br><span class="badge" id="agent-status">checking agent…</span>`;
 
