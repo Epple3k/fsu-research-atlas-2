@@ -7,6 +7,57 @@ interface where every number the AI states is traceable to real records.
 Built on [OpenAlex](https://openalex.org) publication data for Florida State
 University (institution `I103163165`).
 
+## The product problem
+
+Publication databases are effective when someone already knows which paper,
+author, or topic to search for. They are much harder to use for exploratory
+questions such as:
+
+- Which research areas are becoming more interdisciplinary?
+- Where are strong cross-field relationships forming?
+- What evidence supports that conclusion?
+- Can a user inspect the records instead of trusting an aggregate or AI summary?
+
+The provisional primary user is a university research strategist investigating
+cross-disciplinary activity before deciding where to focus outreach or deeper
+analysis. That user definition is a design hypothesis until interviews are
+completed.
+
+> **Design hypothesis:** AI can make a large research dataset easier to
+> interrogate, but users should not have to accept its numerical claims on
+> fluency alone. Every generated conclusion should remain visually and
+> interactively attached to the evidence that produced it.
+
+That creates the core product loop:
+
+```
+question → constrained analysis → observation → clickable claim → network focus → source papers
+```
+
+### Why the interface works this way
+
+- **Claims are interactive objects, not a block of prose.** Selecting one
+  highlights its relationship and exposes the papers behind it.
+- **The network explores; text specifies.** The graph reveals relational
+  structure while claim cards communicate exact values.
+- **Observation and interpretation have different voices.** Measurements use
+  the sans-serif interface voice; interpretive conclusions use a contrasting
+  serif voice.
+- **The model never owns the numbers.** The agent selects constrained tools,
+  while the browser reconstructs visible claims from local, provenance-bearing
+  data.
+
+The tradeoff is deliberate: constraining the agent makes the answer less
+free-form, but makes unsupported quantitative claims structurally harder to
+display.
+
+### Evaluation status
+
+The mechanism is implemented; its effect on user comprehension and calibrated
+trust has not been established yet. A counterbalanced 6–8 participant comparison
+is prepared using a claim-only control and the full evidence-first interface.
+Results will be added only after real sessions are completed.
+
 ## Product-design materials
 
 The repository now includes the product story and the materials needed to evaluate it without inventing findings:
@@ -59,10 +110,10 @@ python agent_server.py
 Leave that running and reload the page — the header badge flips to "AI agent
 connected" and the Ask box calls Claude directly. If the server isn't running
 (or goes down mid-session), the page falls back to the deterministic
-interpreter automatically. The server never invents a claim: it only ever
-hands the page the exact field pairs the model looked up via `tools.py`'s
-`link_papers`, and the page builds the actual clickable claim from real
-`network-data.js` edges — so a claim on screen always traces to real papers.
+interpreter automatically. The server never invents a claim: it hands the page only field pairs returned
+by the constrained analysis tools, and the page builds each clickable claim
+from real `network-data.js` edges — so a claim on screen always traces to real
+papers.
 
 ### Publishing to GitHub Pages, with the real AI
 
