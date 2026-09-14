@@ -7,6 +7,19 @@ interface where every number the AI states is traceable to real records.
 Built on [OpenAlex](https://openalex.org) publication data for Florida State
 University (institution `I103163165`).
 
+## Product-design materials
+
+The repository now includes the product story and the materials needed to evaluate it without inventing findings:
+
+- **[Live product-design case study](https://epple3k.github.io/fsu-research-atlas-2/case-study.html)** — problem, hypothesis, design decisions, implementation iteration and evaluation plan.
+- **[Case-study copy](docs/CASE_STUDY_COPY.md)** — portable copy for a portfolio CMS.
+- **[Evaluation plan](docs/EVALUATION_PLAN.md)** — counterbalanced comparison, moderator script, tasks, measures and analysis.
+- **[Session record](docs/SESSION_RECORD.md)** — duplicate once per participant.
+- **[Results template](docs/RESULTS_TEMPLATE.md)** and **[fillable CSV](docs/results-template.csv)** — aggregate the study and document the iteration.
+- **[Interaction specification](docs/DESIGN_SPEC.md)** — component states, behavioral rules, edge cases and accessibility checklist.
+
+The two test views are `?study=control` (claim-only) and `?study=full` (evidence-first). Results are intentionally not claimed until real sessions are completed.
+
 ---
 
 ## Run it (2 minutes)
