@@ -15,6 +15,7 @@ The repository now includes the product story and the materials needed to evalua
 - **[Case-study copy](docs/CASE_STUDY_COPY.md)** — portable copy for a portfolio CMS.
 - **[Evaluation plan](docs/EVALUATION_PLAN.md)** — counterbalanced comparison, moderator script, tasks, measures and analysis.
 - **[Session record](docs/SESSION_RECORD.md)** — duplicate once per participant.
+- **[Results template](docs/RESULTS_TEMPLATE.md)** and **[fillable CSV](docs/results-template.csv)** — aggregate the study and document the iteration.
 - **[Interaction specification](docs/DESIGN_SPEC.md)** — component states, behavioral rules, edge cases and accessibility checklist.
 
 The two test views are `?study=control` (claim-only) and `?study=full` (evidence-first). Results are intentionally not claimed until real sessions are completed.
