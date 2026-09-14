@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A product design case study for FSU Research Explorer: an evidence-first interface for asking questions of university research data.">
+<title>FSU Research Explorer — Product Design Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4f1e9;--panel:#fffdf8;--ink:#17212c;--muted:#606a74;--line:#d9d4c8;
+  --accent:#a8641e;--accent-soft:#eee0cd;--blue:#314b64;--sans:"Space Grotesk",system-ui,sans-serif;
+  --serif:"Newsreader",Georgia,serif
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{width:min(1120px,calc(100% - 40px));margin:auto}
+nav{height:68px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+nav a{text-decoration:none;font-size:13px}
+.brand{font-weight:600}
+.navlinks{display:flex;gap:20px;color:var(--muted)}
+.hero{padding:96px 0 72px;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr);gap:72px;align-items:end}
+.eyebrow{color:var(--accent);font-size:12px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;margin-bottom:18px}
+h1,h2,h3,p{margin-top:0}
+h1{font:500 clamp(52px,8vw,104px)/.91 var(--serif);letter-spacing:-.045em;margin-bottom:28px;max-width:900px}
+.deck{font:400 clamp(21px,2.4vw,31px)/1.25 var(--serif);max-width:780px;color:var(--blue);margin-bottom:0}
+.meta{border-top:1px solid var(--line);padding-top:18px;display:grid;gap:18px}
+.meta dt{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.meta dd{margin:3px 0 0;font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.button{display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border:1px solid var(--ink);border-radius:999px;text-decoration:none;font-size:13px;font-weight:500}
+.button.primary{background:var(--ink);color:var(--panel)}
+.stats{background:var(--ink);color:var(--panel);padding:32px 0}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr)}
+.stat{padding:8px 28px;border-right:1px solid #39424c}
+.stat:first-child{padding-left:0}.stat:last-child{border:0}
+.stat strong{display:block;font:500 clamp(30px,4vw,50px)/1 var(--serif)}
+.stat span{display:block;margin-top:8px;color:#b9c0c6;font-size:12px}
+section{padding:96px 0;border-bottom:1px solid var(--line)}
+.section-grid{display:grid;grid-template-columns:280px 1fr;gap:72px}
+.kicker{font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+h2{font:500 clamp(36px,5vw,66px)/1 var(--serif);letter-spacing:-.025em;margin-bottom:28px}
+h3{font-size:16px;margin-bottom:9px}
+.lede{font:400 27px/1.3 var(--serif);color:var(--blue);max-width:780px}
+.bodycopy{max-width:760px}
+.bodycopy p{color:var(--muted)}
+.quote{font:400 clamp(28px,4vw,48px)/1.13 var(--serif);padding:42px 0;color:var(--ink);max-width:930px}
+.jobs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:36px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
+.card .num{font-size:11px;color:var(--accent);letter-spacing:.1em;margin-bottom:24px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:42px}
+.flow div{position:relative;background:var(--panel);border:1px solid var(--line);padding:18px 14px;border-radius:10px;font-size:13px;text-align:center}
+.flow div:not(:last-child):after{content:"→";position:absolute;right:-9px;top:18px;z-index:2;color:var(--accent)}
+.prototype{margin-top:48px;background:#dfe3e7;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.browserbar{height:42px;background:var(--panel);display:flex;align-items:center;gap:7px;padding:0 14px;border-bottom:1px solid var(--line)}
+.dot{width:8px;height:8px;border:1px solid #9ba3aa;border-radius:50%}
+.prototype iframe{display:block;width:100%;height:700px;border:0;background:#edf0f4}
+.caption{font-size:12px;color:var(--muted);margin-top:12px}
+.decisions{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:42px}
+.decision{background:var(--panel);border-top:3px solid var(--accent);padding:26px;border-radius:0 0 12px 12px}
+.decision h3{font:500 25px/1.15 var(--serif)}
+.decision p{font-size:14px;color:var(--muted);margin-bottom:12px}
+.decision .tradeoff{border-top:1px solid var(--line);padding-top:12px;margin:0;color:var(--ink)}
+.failure{background:var(--ink);color:var(--panel);border-radius:18px;padding:38px;margin-top:38px}
+.failure .label{color:#d5a66e;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.failure h3{font:500 34px/1.12 var(--serif);max-width:720px;margin:10px 0 18px}
+.failure p{color:#c7cdd2;max-width:760px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:38px}
+.compare a{display:block;text-decoration:none}
+.compare .card{transition:transform .15s,border-color .15s}
+.compare .card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.mode{font:500 27px/1.1 var(--serif);margin-bottom:8px}
+.plan{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:38px}
+.measure{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.status{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 9px;font-size:11px;font-weight:600}
+.note{background:var(--accent-soft);border-left:3px solid var(--accent);padding:18px 20px;color:#6f491f;margin-top:26px}
+footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
+@media(max-width:820px){
+  .hero,.section-grid{grid-template-columns:1fr;gap:32px}.hero{padding-top:60px}.statgrid{grid-template-columns:1fr 1fr}
+  .stat{border-bottom:1px solid #39424c}.jobs,.decisions,.plan,.compare{grid-template-columns:1fr}
+  .flow{grid-template-columns:1fr 1fr}.flow div:after{display:none}.prototype iframe{height:680px}
+}
+@media(max-width:520px){.wrap{width:min(100% - 24px,1120px)}.navlinks a:first-child{display:none}.stats .stat{padding:18px 12px}.stat:first-child{padding-left:12px}.prototype iframe{height:760px}section{padding:70px 0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.compare .card{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="case-study.html">FSU Research Explorer / Case study</a>
+    <div class="navlinks"><a href="#decisions">Decisions</a><a href="#evaluation">Evaluation</a><a href="index.html">Open product ↗</a></div>
+  </nav>
+</div>
+
+<header class="wrap hero">
+  <div>
+    <div class="eyebrow">Product design · Human–AI interaction · Data systems</div>
+    <h1>Making an AI answer show its work.</h1>
+    <p class="deck">I designed and built an evidence-first interface for exploring how research fields at Florida State University connect—without asking users to trust a black-box summary.</p>
+    <div class="actions"><a class="button primary" href="index.html">Try the live product</a><a class="button" href="https://github.com/Epple3k/fsu-research-atlas-2">View the code</a></div>
+  </div>
+  <dl class="meta">
+    <div><dt>My role</dt><dd>Product design, interaction design, data modeling, frontend and agent architecture</dd></div>
+    <div><dt>Scope</dt><dd>Independent prototype · 2026</dd></div>
+    <div><dt>Data source</dt><dd>OpenAlex · FSU works from 2018–2026</dd></div>
+    <div><dt>Current status</dt><dd><span class="status">Working prototype · evaluation prepared</span></dd></div>
+  </dl>
+</header>
+
+<div class="stats">
+  <div class="wrap statgrid">
+    <div class="stat"><strong>38,607</strong><span>FSU research works indexed</span></div>
+    <div class="stat"><strong>24,204</strong><span>interdisciplinary works</span></div>
+    <div class="stat"><strong>26</strong><span>research fields</span></div>
+    <div class="stat"><strong>279</strong><span>cross-field relationships</span></div>
+  </div>
+</div>
+
+<main>
+<section>
+  <div class="wrap section-grid">
+    <div class="kicker">01 / The problem</div>
+    <div class="bodycopy">
+      <h2>Search finds papers. It does not make a research system legible.</h2>
+      <p class="lede">University research is distributed across departments, disciplines and thousands of individual publications. A person trying to understand the larger pattern has to assemble it manually.</p>
+      <p>Existing publication databases are useful when the user already knows what paper, author or subject to search for. They are less useful for exploratory questions: Which fields are becoming more interdisciplinary? Where are strong connections forming? What evidence supports that conclusion?</p>
+      <p>The tempting solution is to place a conversational AI over the dataset. That makes querying easier, but creates a new problem: a fluent answer can feel authoritative even when the path from source data to conclusion is invisible.</p>
+      <div class="quote">The design problem was not simply “How can AI answer questions about research?” It was “How can an answer remain inspectable after AI makes the dataset easier to ask?”</div>
+      <h3>Provisional primary user</h3>
+      <p>A university research strategist investigating cross-disciplinary activity before deciding where to focus outreach or further analysis. This user definition is a design hypothesis until interviews with research-adjacent users are completed.</p>
+      <div class="jobs">
+        <div class="card"><div class="num">JOB 01</div><p>Identify a relationship worth investigating without scanning thousands of papers.</p></div>
+        <div class="card"><div class="num">JOB 02</div><p>Understand whether a claim describes current volume, change over time or interpretation.</p></div>
+        <div class="card"><div class="num">JOB 03</div><p>Inspect the exact papers behind a conclusion before acting on it.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap section-grid">
+    <div class="kicker">02 / Hypothesis</div>
+    <div class="bodycopy">
+      <h2>Convenience without blind trust.</h2>
+      <p class="lede">AI can make a large research dataset easier to interrogate, but users should never have to accept its numerical claims on fluency alone.</p>
+      <p>My hypothesis was that every generated conclusion should remain visually and interactively attached to the evidence that produced it. The AI can decide which constrained analysis tools to call; it cannot invent an unsupported number or detach a claim from its source records.</p>
+      <div class="flow" aria-label="Product workflow">
+        <div>Question</div><div>Constrained analysis</div><div>Observation</div><div>Clickable claim</div><div>Network focus</div><div>Source papers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">03 / Working product</div>
+    <h2>A complete question-to-evidence loop.</h2>
+    <p class="lede">The prototype below is the real deployed interface and uses real FSU publication data. Ask a supported question, select a claim and inspect the papers behind it.</p>
+    <div class="prototype">
+      <div class="browserbar" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <iframe src="index.html" title="Interactive FSU Research Explorer prototype" loading="lazy"></iframe>
+    </div>
+    <p class="caption">If the embedded view feels tight, <a href="index.html">open the prototype full-screen</a>. The interface falls back to a deterministic interpreter if the hosted AI service is waking or unavailable.</p>
+  </div>
+</section>
+
+<section id="decisions">
+  <div class="wrap section-grid">
+    <div class="kicker">04 / Design decisions</div>
+    <div>
+      <h2>The architecture is part of the interaction design.</h2>
+      <p class="lede">The trust model is not a disclaimer added to the interface. It shaped what the agent may do, what the frontend will display and how a user moves through the result.</p>
+      <div class="decisions">
+        <article class="decision">
+          <h3>Claims are objects, not prose.</h3>
+          <p>An AI answer is decomposed into selectable claims. Selecting one highlights the exact field relationship and loads its supporting papers.</p>
+          <p class="tradeoff"><strong>Tradeoff:</strong> the response is less conversational, but far easier to inspect and challenge.</p>
+        </article>
+        <article class="decision">
+          <h3>The network explores; text specifies.</h3>
+          <p>A ranking is precise but hides relational structure. A network exposes structure but is harder to read exactly. I use the network for orientation and claim cards for precise values.</p>
+          <p class="tradeoff"><strong>Tradeoff:</strong> two coordinated views add complexity, so selection state must remain synchronized.</p>
+        </article>
+        <article class="decision">
+          <h3>Observation and interpretation have different voices.</h3>
+          <p>Measurements use the sans-serif product voice. Interpretive conclusions use a contrasting serif voice, creating a subtle boundary between what the dataset reports and what the system infers.</p>
+          <p class="tradeoff"><strong>Tradeoff:</strong> typography supports the distinction, but wording and evidence access still carry the real burden.</p>
+        </article>
+        <article class="decision">
+          <h3>The model never owns the numbers.</h3>
+          <p>The agent can only call constrained tools that return observations, field pairs and work IDs. The browser reconstructs visible claims from its own data before rendering them.</p>
+          <p class="tradeoff"><strong>Tradeoff:</strong> this limits free-form expression, but makes unsupported quantitative claims structurally harder to display.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap section-grid">
+    <div class="kicker">05 / Iteration</div>
+    <div>
+      <h2>A failure in the evidence chain changed the implementation.</h2>
+      <p class="lede">A technically correct answer is still a product failure if the interface cannot expose how it was produced.</p>
+      <div class="failure">
+        <div class="label">Observed failure</div>
+        <h3>The agent answered an open-ended question with real tool output, but the UI rendered no clickable evidence.</h3>
+        <p>The first server implementation only collected provenance when the model used a direct link lookup. For “most interconnected” questions, the model used a top-collaborations tool instead. The prose contained supported values, but the returned edge list was empty—breaking the product’s core promise.</p>
+        <p>I changed the server to capture evidence-backed field pairs from every relevant tool result and kept claim construction in the browser. I also raised the model’s output budget after tracing a second failure where tool calls were silently truncated on harder questions. The iteration was not “make the AI sound better.” It was “make the evidence contract survive different agent behavior.”</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="evaluation">
+  <div class="wrap section-grid">
+    <div class="kicker">06 / Evaluation</div>
+    <div>
+      <h2>Next: test whether visible provenance changes behavior.</h2>
+      <p class="lede">The working product proves the mechanism. It does not yet prove that the mechanism improves comprehension or calibrated trust.</p>
+      <p>The prepared study uses two otherwise similar views: a control view in which claims can be read and highlighted, and the evidence-first view in which the underlying papers are available inline. Six to eight participants will complete matched research-investigation tasks in counterbalanced order.</p>
+      <div class="compare">
+        <a href="index.html?study=control"><div class="card"><div class="num">VERSION A</div><div class="mode">Claim-only control</div><p>Users can read claims and see network context, but cannot inspect paper-level evidence.</p></div></a>
+        <a href="index.html?study=full"><div class="card"><div class="num">VERSION B</div><div class="mode">Evidence-first product</div><p>Users can open a claim, follow its highlighted relationship and inspect each source paper.</p></div></a>
+      </div>
+      <div class="plan">
+        <div>
+          <h3>What I will measure</h3>
+          <div class="measure"><span>Task completion</span><strong>Yes / No</strong></div>
+          <div class="measure"><span>Correct relationship identified</span><strong>Yes / No</strong></div>
+          <div class="measure"><span>Time on task</span><strong>Seconds</strong></div>
+          <div class="measure"><span>Confidence</span><strong>1–5</strong></div>
+          <div class="measure"><span>Trust in conclusion</span><strong>1–5</strong></div>
+          <div class="measure"><span>Source inspection</span><strong>Observed</strong></div>
+        </div>
+        <div>
+          <h3>What would count as learning</h3>
+          <p>If evidence visibility raises trust indiscriminately, the design may create false confidence rather than calibrated trust. More encouraging evidence would be that participants verify sources more often, explain conclusions more accurately and describe clearer reasons for trusting or questioning a claim.</p>
+          <p>The study protocol, moderator script and session record are included in the public repository so the evaluation can be reviewed and repeated.</p>
+        </div>
+      </div>
+      <div class="note"><strong>No results are claimed yet.</strong> This case study will be updated after sessions are completed; placeholders are intentionally not presented as findings.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap section-grid">
+    <div class="kicker">07 / Reflection</div>
+    <div class="bodycopy">
+      <h2>Trust is something an interface lets a user do.</h2>
+      <p class="lede">The most important outcome is not the network itself. It is a reusable model for keeping machine-generated interpretation connected to inspectable records.</p>
+      <p>This prototype taught me to treat data provenance as a user interaction rather than a backend property. A citation stored somewhere in the system is not enough. The person using the product needs a visible path from question, to claim, to relationship, to source—and that path must survive the unpredictable ways an agent may choose to solve a problem.</p>
+      <p>The next iteration will be determined by observed user behavior: where people hesitate, what they assume a line or claim means, whether they inspect evidence, and whether the interface helps them form a reasoned level of trust rather than simply a higher one.</p>
+      <div class="actions"><a class="button primary" href="index.html">Use the product</a><a class="button" href="https://github.com/Epple3k/fsu-research-atlas-2/tree/main/docs">Review the study materials</a></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap"><span>FSU Research Explorer · 2026</span><span>Designed and built by Emit Rice</span></footer>
+</body>
+</html>
