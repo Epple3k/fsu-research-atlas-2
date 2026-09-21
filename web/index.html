@@ -669,27 +669,48 @@ function render(inv){
 const PRODUCTION_AGENT_BASE="https://fsu-research-atlas-agent.onrender.com";
 const AGENT_BASE=(location.hostname==="localhost"||location.hostname==="127.0.0.1")
   ? "http://localhost:8765" : PRODUCTION_AGENT_BASE;
-let AGENT_STATUS="unknown"; // "online" | "offline"
+let AGENT_STATUS="unknown"; // "checking" | "online" | "offline"
 
-// only used to paint the badge before the first real question is asked —
-// a free-tier host can take 30-50s to wake from a cold start, so this is a
-// display hint, not a gate: run() always attempts the real agent regardless
-// of what this found, so a slow/failed probe here can never permanently
-// disable it for the rest of the session
+// Render's free tier can take 30-50s to wake. Keep retrying in the background
+// instead of declaring the agent offline after a single short health check.
 async function checkAgent(){
-  try{
-    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),5000);
-    const res=await fetch(AGENT_BASE+"/health",{signal:ctrl.signal});
-    clearTimeout(t);
-    AGENT_STATUS=res.ok?"online":"offline";
-  }catch(e){ AGENT_STATUS="offline"; }
+  AGENT_STATUS="checking";
   updateAgentBadge();
+  const deadline=Date.now()+60000;
+
+  while(Date.now()<deadline){
+    if(AGENT_STATUS==="online") return;
+    try{
+      const ctrl=new AbortController();
+      const t=setTimeout(()=>ctrl.abort(),10000);
+      const res=await fetch(AGENT_BASE+"/health",{signal:ctrl.signal});
+      clearTimeout(t);
+      if(res.ok){
+        AGENT_STATUS="online";
+        updateAgentBadge();
+        return;
+      }
+    }catch(e){
+      // A sleeping Render instance may miss the first probe while it wakes.
+    }
+    await new Promise(resolve=>setTimeout(resolve,2500));
+  }
+
+  if(AGENT_STATUS!=="online"){
+    AGENT_STATUS="offline";
+    updateAgentBadge();
+  }
 }
 function updateAgentBadge(){
   const el=document.getElementById("agent-status"); if(!el) return;
+  const isLocal=location.hostname==="localhost"||location.hostname==="127.0.0.1";
   el.textContent=AGENT_STATUS==="online"
     ? "AI agent connected — ask anything"
-    : "Demo interpreter — run agent_server.py for the real AI";
+    : AGENT_STATUS==="checking"
+      ? "Waking AI…"
+      : isLocal
+        ? "Demo interpreter — run agent_server.py for the real AI"
+        : "AI temporarily unavailable — demo mode active";
   el.classList.toggle("badge-live",AGENT_STATUS==="online");
 }
 
@@ -706,12 +727,17 @@ async function askAgent(question){
       body:JSON.stringify({question}), signal:ctrl.signal});
     clearTimeout(t);
   }catch(err){
-    // couldn't even reach the server (network error, timeout, DNS, CORS) —
-    // that's the server being unreachable, not this question being invalid
-    AGENT_STATUS="offline"; updateAgentBadge();
+    // Keep the honest waking state while the background probe is still
+    // retrying; fall back quietly for this question.
+    if(AGENT_STATUS!=="checking") AGENT_STATUS="offline";
+    updateAgentBadge();
     return null;
   }
-  if(res.status>=500){ AGENT_STATUS="offline"; updateAgentBadge(); return null; }
+  if(res.status>=500){
+    if(AGENT_STATUS!=="checking") AGENT_STATUS="offline";
+    updateAgentBadge();
+    return null;
+  }
   const data=await res.json().catch(()=>({error:"bad response from agent"}));
   if(!res.ok||data.error){
     // a 4xx (bad question, rate limit, etc.) — the server is fine, just this
