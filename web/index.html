@@ -22,8 +22,41 @@
     background:var(--ground); color:var(--ink); font-family:var(--sans);
     font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
   }
-  .app{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(340px,0.85fr);
-    grid-template-rows:auto 1fr; height:100vh; max-height:100vh; overflow:hidden}
+  .boot-gate{
+    position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column;
+    justify-content:space-between; padding:24px 28px 30px; background:var(--ground);
+    opacity:1; visibility:visible; transition:opacity .35s ease, visibility .35s ease;
+  }
+  .boot-gate.is-ready{opacity:0; visibility:hidden; pointer-events:none}
+  .boot-topline{
+    display:flex; justify-content:space-between; gap:20px; font-size:11px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--faint);
+  }
+  .boot-copy{width:min(620px,100%); padding-bottom:7vh}
+  .boot-kicker{font-size:12px; color:var(--evidence); margin-bottom:10px}
+  .boot-copy h1{
+    margin:0 0 12px; font-family:var(--serif); font-size:clamp(38px,6vw,72px);
+    font-weight:400; line-height:.98; letter-spacing:-.025em;
+  }
+  .boot-copy p{margin:0; max-width:520px; color:var(--muted); font-size:14px}
+  .boot-track{
+    width:min(420px,100%); height:2px; margin-top:24px; overflow:hidden;
+    background:var(--line-strong);
+  }
+  .boot-track span{
+    display:block; width:34%; height:100%; background:var(--ink);
+    animation:bootSweep 1.25s ease-in-out infinite;
+  }
+  @keyframes bootSweep{
+    0%{transform:translateX(-105%)}
+    100%{transform:translateX(305%)}
+  }
+  .app{
+    display:grid; grid-template-columns:minmax(0,1.15fr) minmax(340px,0.85fr);
+    grid-template-rows:auto 1fr; height:100vh; max-height:100vh; overflow:hidden;
+    opacity:1; transition:opacity .3s ease;
+  }
+  .app.app-locked{opacity:0; visibility:hidden; pointer-events:none}
   header{grid-column:1 / -1; display:flex; align-items:baseline; gap:16px;
     padding:16px 22px; border-bottom:1px solid var(--line); background:var(--panel)}
   header h1{font-size:17px; font-weight:600; margin:0; letter-spacing:-0.01em}
@@ -117,7 +150,19 @@
 </style>
 </head>
 <body>
-<div class="app">
+<div class="boot-gate" id="boot-gate" role="status" aria-live="polite">
+  <div class="boot-topline">
+    <span>FSU Research Explorer</span>
+    <span>2018–2026</span>
+  </div>
+  <div class="boot-copy">
+    <div class="boot-kicker">Connecting live research agent</div>
+    <h1>Waking the AI backend.</h1>
+    <p id="boot-detail">The explorer will open as soon as the live agent is ready.</p>
+    <div class="boot-track" aria-hidden="true"><span></span></div>
+  </div>
+</div>
+<div class="app app-locked" id="app">
   <header>
     <div>
       <h1>FSU Research Explorer</h1>
@@ -667,53 +712,61 @@ function render(inv){
 // below to that deployed URL — that's the one line this file needs changed
 // before publishing.
 const PRODUCTION_AGENT_BASE="https://fsu-research-atlas-agent.onrender.com";
-const AGENT_BASE=(location.hostname==="localhost"||location.hostname==="127.0.0.1")
-  ? "http://localhost:8765" : PRODUCTION_AGENT_BASE;
+const IS_LOCAL=location.hostname==="localhost"||location.hostname==="127.0.0.1";
+const AGENT_BASE=IS_LOCAL ? "http://localhost:8765" : PRODUCTION_AGENT_BASE;
 let AGENT_STATUS="unknown"; // "checking" | "online" | "offline"
 
-// Render's free tier can take 30-50s to wake. Keep retrying in the background
-// instead of declaring the agent offline after a single short health check.
+function setBootMessage(message){
+  const el=document.getElementById("boot-detail");
+  if(el) el.textContent=message;
+}
+function revealApp(){
+  document.getElementById("app")?.classList.remove("app-locked");
+  document.getElementById("boot-gate")?.classList.add("is-ready");
+}
+function showBootGate(message){
+  if(message) setBootMessage(message);
+  document.getElementById("app")?.classList.add("app-locked");
+  document.getElementById("boot-gate")?.classList.remove("is-ready");
+}
+
+// Render can take a while to wake. In production the interface stays locked
+// until /health confirms that the live agent is actually ready.
 async function checkAgent(){
   AGENT_STATUS="checking";
   updateAgentBadge();
-  const deadline=Date.now()+60000;
+  const started=Date.now();
 
-  while(Date.now()<deadline){
-    if(AGENT_STATUS==="online") return;
+  while(true){
     try{
       const ctrl=new AbortController();
       const t=setTimeout(()=>ctrl.abort(),10000);
       const res=await fetch(AGENT_BASE+"/health",{signal:ctrl.signal});
       clearTimeout(t);
-      if(res.ok){
+      const health=await res.json().catch(()=>({}));
+      if(res.ok && health.ok!==false && health.ready!==false){
         AGENT_STATUS="online";
         updateAgentBadge();
-        return;
+        return true;
       }
     }catch(e){
-      // A sleeping Render instance may miss the first probe while it wakes.
+      // The first request is enough to wake a sleeping Render service.
     }
-    await new Promise(resolve=>setTimeout(resolve,2500));
-  }
 
-  if(AGENT_STATUS!=="online"){
-    AGENT_STATUS="offline";
-    updateAgentBadge();
+    const seconds=Math.max(1,Math.round((Date.now()-started)/1000));
+    setBootMessage(
+      seconds<75
+        ? `Starting the live research agent… ${seconds}s`
+        : "The backend is taking longer than usual. Retrying automatically before opening the explorer."
+    );
+    await new Promise(resolve=>setTimeout(resolve,2500));
   }
 }
 function updateAgentBadge(){
   const el=document.getElementById("agent-status"); if(!el) return;
-  const isLocal=location.hostname==="localhost"||location.hostname==="127.0.0.1";
-  el.textContent=AGENT_STATUS==="online"
-    ? "AI agent connected — ask anything"
-    : AGENT_STATUS==="checking"
-      ? "Waking AI…"
-      : isLocal
-        ? "Demo interpreter — run agent_server.py for the real AI"
-        : "AI temporarily unavailable — demo mode active";
+  el.textContent=AGENT_STATUS==="online" ? "AI live" : "Connecting…";
   el.classList.toggle("badge-live",AGENT_STATUS==="online");
 }
-
 // the server only ever hands back which real edges (field-id pairs) the model
 // looked up via link_papers, plus its prose — we build the actual clickable
 // claims ourselves from network-data.js, so nothing can appear on screen
@@ -765,10 +818,14 @@ async function run(question){
 
 // ---------- boot ----------
 (async function(){
+  // Start waking Render immediately while the local dataset and UI build
+  // invisibly underneath the startup gate.
+  const agentWake=IS_LOCAL ? Promise.resolve(false) : checkAgent();
+
   NET=await loadNet();
   const out=document.getElementById("out");
   if(!NET){
-    out.innerHTML=`<p class="empty">Couldn’t load the data. If you opened this file directly and see nothing, run a tiny server in this folder:<br><br><code>python -m http.server 8000</code><br><br>then open <code>http://localhost:8000</code>. Or run <code>python fetch_openalex.py</code> to generate the data.</p>`;
+    setBootMessage("The research dataset could not be loaded. Reload the page to try again.");
     return;
   }
   FN={}; NET.fields.forEach(f=>FN[f.id]=f);
@@ -776,11 +833,10 @@ async function run(question){
 
   const m=NET.meta||{};
   document.getElementById("meta").innerHTML =
-    `${escapeHtml(m.institution||"")} · ${escapeHtml(m.years||"")}<br>`+
+    `${escapeHtml(m.institution||"")} · ${escapeHtml(m.years||"")} · `+
     `${(m.interdisc_work_count||0).toLocaleString()} interdisciplinary works · ${NET.edges.length} links`+
-    (STUDY_MODE==="control"?`<br><span class="badge">comparison view</span>`:"")+
-    (m.sample?`<br><span class="badge">sample data — run fetch_openalex.py for the real thing</span>`:``)+
-    `<br><span class="badge" id="agent-status">checking agent…</span>`;
+    (STUDY_MODE==="control"?` <span class="badge">comparison view</span>`:"")+
+    (m.sample?` <span class="badge">sample data</span>`:``);
 
   const chips=["which areas are becoming more interdisciplinary?",
                "which research areas are most interconnected?",
@@ -793,13 +849,19 @@ async function run(question){
   document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") run(e.target.value||chips[0]); });
 
   drawNetwork();
-  // first paint is always instant/deterministic — never block it on a possibly
-  // cold backend. Subsequent questions (chips, typed, drag-compare) go through
-  // run(), which always tries the real agent first regardless of this probe.
   const firstQuestion="which research areas are most interconnected?";
   document.getElementById("q").value=firstQuestion;
   render(interpret(firstQuestion));
-  checkAgent();
+
+  if(IS_LOCAL){
+    // Keep local development usable without forcing agent_server.py to run.
+    AGENT_STATUS="offline";
+    revealApp();
+    return;
+  }
+
+  await agentWake;
+  revealApp();
 })();
 </script>
 </body>
