@@ -160,3 +160,11 @@ body.is-portfolio-preview .matrix-shell{max-height:calc(100vh - 185px);overflow:
 body.is-portfolio-preview .map-header{margin-bottom:8px}
 body.is-portfolio-preview .map-header h2{font-size:40px}
 body.is-portfolio-preview .map-method{display:none}
+
+/* A compact but fully interactive case-study embed, unlike passive thumbnails. */
+body.is-case-study-embed .atlas-intro,body.is-case-study-embed .atlas-signals{display:none}
+body.is-case-study-embed .atlas-search-zone{padding-top:14px;padding-bottom:15px}
+body.is-case-study-embed .stage.atlas-map{padding:20px!important}
+body.is-case-study-embed .atlas-bottom{display:none}
+body.is-case-study-embed .atlas-matrix{--cell:22px;--row-name:155px}
+body.is-case-study-embed .map-header h2{font-size:38px}
