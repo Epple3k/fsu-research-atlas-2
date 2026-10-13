@@ -6,6 +6,7 @@
 
   const params = new URLSearchParams(window.location.search);
   if (params.get("portfolioPreview") === "1") document.body.classList.add("is-portfolio-preview");
+  if (params.get("caseStudyEmbed") === "1") document.body.classList.add("is-case-study-embed");
   const isControl = params.get("study") === "control";
   const money = n => Number(n || 0).toLocaleString("en-US");
   const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c =>
