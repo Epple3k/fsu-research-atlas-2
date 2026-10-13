@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A product design case study for FSU Research Explorer: an evidence-first interface for asking questions of university research data.">
-<title>FSU Research Explorer — Product Design Case Study</title>
+<meta name="description" content="The design process behind Research Atlas: an evidence-first map of relationships between research fields and source publications.">
+<title>Research Atlas — Designing a Crossing Map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#f4f1e9;--panel:#fffdf8;--ink:#17212c;--muted:#606a74;--line:#d9d4c8;
-  --accent:#a8641e;--accent-soft:#eee0cd;--blue:#314b64;--sans:"Space Grotesk",system-ui,sans-serif;
+  --paper:#f3eee6;--panel:#fffdf7;--ink:#2b201f;--muted:#71665f;--line:#d9d0c5;
+  --accent:#8c2f25;--accent-soft:#f1dbcf;--blue:#5a201f;--sans:"Space Grotesk",system-ui,sans-serif;
   --serif:"Newsreader",Georgia,serif
 }
 *{box-sizing:border-box}
@@ -92,7 +92,7 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
 <body>
 <div class="wrap">
   <nav>
-    <a class="brand" href="case-study.html">FSU Research Explorer / Case study</a>
+    <a class="brand" href="case-study.html">Research Atlas / Design process</a>
     <div class="navlinks"><a href="#decisions">Decisions</a><a href="#evaluation">Evaluation</a><a href="index.html">Open product ↗</a></div>
   </nav>
 </div>
@@ -100,8 +100,8 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
 <header class="wrap hero">
   <div>
     <div class="eyebrow">Product design · Human–AI interaction · Data systems</div>
-    <h1>Making an AI answer show its work.</h1>
-    <p class="deck">I designed and built an evidence-first interface for exploring how research fields at Florida State University connect—without asking users to trust a black-box summary.</p>
+    <h1>Finding the work between fields.</h1>
+    <p class="deck">I designed a searchable atlas that reveals where disciplines overlap, then lets a user trace every relationship back to its source papers.</p>
     <div class="actions"><a class="button primary" href="index.html">Try the live product</a><a class="button" href="https://github.com/Epple3k/fsu-research-atlas-2">View the code</a></div>
   </div>
   <dl class="meta">
@@ -126,11 +126,11 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
   <div class="wrap section-grid">
     <div class="kicker">01 / The problem</div>
     <div class="bodycopy">
-      <h2>Search finds papers. It does not make a research system legible.</h2>
-      <p class="lede">University research is distributed across departments, disciplines and thousands of individual publications. A person trying to understand the larger pattern has to assemble it manually.</p>
+      <h2>Research lives in papers. Its patterns live between them.</h2>
+      <p class="lede">38,607 publications are easy to count and difficult to understand together. A strategist often needs to discover the connections between fields before knowing which papers to search for.</p>
       <p>Existing publication databases are useful when the user already knows what paper, author or subject to search for. They are less useful for exploratory questions: Which fields are becoming more interdisciplinary? Where are strong connections forming? What evidence supports that conclusion?</p>
-      <p>The tempting solution is to place a conversational AI over the dataset. That makes querying easier, but creates a new problem: a fluent answer can feel authoritative even when the path from source data to conclusion is invisible.</p>
-      <div class="quote">The design problem was not simply “How can AI answer questions about research?” It was “How can an answer remain inspectable after AI makes the dataset easier to ask?”</div>
+      <p>A conventional node-link graph adds a second difficulty: with 26 fields and 279 relationships, a weave of arcs can still be hard to compare. Putting conversational AI on top introduces a third difficulty: a fluent answer may hide its evidentiary trail.</p>
+      <div class="quote">How might someone notice an unexpected intersection, understand how substantial it is, and inspect the actual work, all within a single line of inquiry?</div>
       <h3>Provisional primary user</h3>
       <p>A university research strategist investigating cross-disciplinary activity before deciding where to focus outreach or further analysis. This user definition is a design hypothesis until interviews with research-adjacent users are completed.</p>
       <div class="jobs">
@@ -146,11 +146,11 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
   <div class="wrap section-grid">
     <div class="kicker">02 / Hypothesis</div>
     <div class="bodycopy">
-      <h2>Convenience without blind trust.</h2>
-      <p class="lede">AI can make a large research dataset easier to interrogate, but users should never have to accept its numerical claims on fluency alone.</p>
-      <p>My hypothesis was that every generated conclusion should remain visually and interactively attached to the evidence that produced it. The AI can decide which constrained analysis tools to call; it cannot invent an unsupported number or detach a claim from its source records.</p>
+      <h2>Make the relationship the unit of discovery.</h2>
+      <p class="lede">The useful unit here is not a single paper or a floating node. It is a crossing: two research fields sharing a documented set of works.</p>
+      <p>The visual system should let a user perceive the landscape before asking a question, then move from field to crossing to actual publications without losing context. A matrix uses negative space to show missing links as clearly as strong ones; optional AI helps phrase questions but does not supply unverified counts.</p>
       <div class="flow" aria-label="Product workflow">
-        <div>Question</div><div>Constrained analysis</div><div>Observation</div><div>Clickable claim</div><div>Network focus</div><div>Source papers</div>
+        <div>Scan crossings</div><div>Find a field</div><div>Select a pair</div><div>Compare windows</div><div>Inspect papers</div><div>Question the pattern</div>
       </div>
     </div>
   </div>
@@ -159,11 +159,11 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
 <section>
   <div class="wrap">
     <div class="kicker">03 / Working product</div>
-    <h2>A complete question-to-evidence loop.</h2>
-    <p class="lede">The prototype below is the real deployed interface and uses real FSU publication data. Ask a supported question, select a claim and inspect the papers behind it.</p>
+    <h2>From crossing map to source record.</h2>
+    <p class="lede">This is the real data-backed instrument. Darker intersections contain more shared publications. Switch to a time-window comparison, search a discipline or paper title, and select a crossing to inspect its source records.</p>
     <div class="prototype">
       <div class="browserbar" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-      <iframe src="index.html" title="Interactive FSU Research Explorer prototype" loading="lazy"></iframe>
+      <iframe src="index.html?portfolioPreview=1" title="Interactive Research Atlas crossing map" loading="lazy"></iframe>
     </div>
     <p class="caption">If the embedded view feels tight, <a href="index.html">open the prototype full-screen</a>. The interface falls back to a deterministic interpreter if the hosted AI service is waking or unavailable.</p>
   </div>
@@ -173,8 +173,8 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
   <div class="wrap section-grid">
     <div class="kicker">04 / Design decisions</div>
     <div>
-      <h2>The architecture is part of the interaction design.</h2>
-      <p class="lede">The trust model is not a disclaimer added to the interface. It shaped what the agent may do, what the frontend will display and how a user moves through the result.</p>
+      <h2>Why a crossing field instead of a network tangle?</h2>
+      <p class="lede">The old radial graph looked interconnected but made differences hard to judge. A field-by-field matrix turns “how much do these two areas overlap?” into a direct visual lookup.</p>
       <div class="decisions">
         <article class="decision">
           <h3>Claims are objects, not prose.</h3>
@@ -182,14 +182,14 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
           <p class="tradeoff"><strong>Tradeoff:</strong> the response is less conversational, but far easier to inspect and challenge.</p>
         </article>
         <article class="decision">
-          <h3>The network explores; text specifies.</h3>
-          <p>A ranking is precise but hides relational structure. A network exposes structure but is harder to read exactly. I use the network for orientation and claim cards for precise values.</p>
-          <p class="tradeoff"><strong>Tradeoff:</strong> two coordinated views add complexity, so selection state must remain synchronized.</p>
+          <h3>One square, one inspectable crossing.</h3>
+          <p>A matrix gives every field pair an address. Intensity shows shared publication volume; empty cells show where no relationship was recorded. Selecting a cell opens the evidence inspector.</p>
+          <p class="tradeoff"><strong>Tradeoff:</strong> the matrix is less theatrical than a radial graph, but easier to compare. Both axes repeat the same fields for lookup.</p>
         </article>
         <article class="decision">
-          <h3>Observation and interpretation have different voices.</h3>
-          <p>Measurements use the sans-serif product voice. Interpretive conclusions use a contrasting serif voice, creating a subtle boundary between what the dataset reports and what the system infers.</p>
-          <p class="tradeoff"><strong>Tradeoff:</strong> typography supports the distinction, but wording and evidence access still carry the real burden.</p>
+          <h3>Start with data, not a waiting screen.</h3>
+          <p>The map, field search, title search and source lookup use the local OpenAlex records. Optional AI never prevents exploration when the backend is asleep.</p>
+          <p class="tradeoff"><strong>Tradeoff:</strong> a local interpreter supports fewer question phrasings than a general model, but the core task remains responsive and verifiable.</p>
         </article>
         <article class="decision">
           <h3>The model never owns the numbers.</h3>
@@ -225,7 +225,7 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
       <p class="lede">The working product proves the mechanism. It does not yet prove that the mechanism improves comprehension or calibrated trust.</p>
       <p>The prepared study uses two otherwise similar views: a control view in which claims can be read and highlighted, and the evidence-first view in which the underlying papers are available inline. Six to eight participants will complete matched research-investigation tasks in counterbalanced order.</p>
       <div class="compare">
-        <a href="index.html?study=control"><div class="card"><div class="num">VERSION A</div><div class="mode">Claim-only control</div><p>Users can read claims and see network context, but cannot inspect paper-level evidence.</p></div></a>
+        <a href="index.html?study=control"><div class="card"><div class="num">VERSION A</div><div class="mode">Claim-only control</div><p>Users can read claims and see relationship context, but cannot inspect paper-level evidence.</p></div></a>
         <a href="index.html?study=full"><div class="card"><div class="num">VERSION B</div><div class="mode">Evidence-first product</div><p>Users can open a claim, follow its highlighted relationship and inspect each source paper.</p></div></a>
       </div>
       <div class="plan">
@@ -254,15 +254,15 @@ footer{padding:42px 0 80px;display:flex;justify-content:space-between;color:var(
     <div class="kicker">07 / Reflection</div>
     <div class="bodycopy">
       <h2>Trust is something an interface lets a user do.</h2>
-      <p class="lede">The most important outcome is not the network itself. It is a reusable model for keeping machine-generated interpretation connected to inspectable records.</p>
+      <p class="lede">The resolution is a crossing map where the visual pattern and its proof live in one continuous interaction.</p>
       <p>This prototype taught me to treat data provenance as a user interaction rather than a backend property. A citation stored somewhere in the system is not enough. The person using the product needs a visible path from question, to claim, to relationship, to source—and that path must survive the unpredictable ways an agent may choose to solve a problem.</p>
-      <p>The next iteration will be determined by observed user behavior: where people hesitate, what they assume a line or claim means, whether they inspect evidence, and whether the interface helps them form a reasoned level of trust rather than simply a higher one.</p>
+      <p>The next iteration should test real investigations: Can a newcomer discover a field pair, interpret its shading, notice missing relationships, distinguish unequal time windows, and open a source before trusting a summary?</p>
       <div class="actions"><a class="button primary" href="index.html">Use the product</a><a class="button" href="https://github.com/Epple3k/fsu-research-atlas-2/tree/main/docs">Review the study materials</a></div>
     </div>
   </div>
 </section>
 </main>
 
-<footer class="wrap"><span>FSU Research Explorer · 2026</span><span>Designed and built by Emit Rice</span></footer>
+<footer class="wrap"><span>Research Atlas · 2026</span><span>Designed and built by Emit Rice</span></footer>
 </body>
 </html>
