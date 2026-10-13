@@ -443,10 +443,10 @@
       button.type = "button"; button.className = "chip"; button.textContent = title;
       button.addEventListener("click", handler); chips.appendChild(button);
     };
-    prompt("01 / Heaviest crossings", () => { setMode("volume"); if(strong) selectPair(strong.a,strong.b); });
-    prompt("02 / What has shifted?", () => { setMode("change"); if(shifting) selectPair(shifting.a,shifting.b); });
-    prompt("03 / Explore a field", () => { searchEl.value = "Science"; searchEl.focus(); renderSearchResults("Science"); });
-    prompt("04 / Ask a research question", () => {
+    prompt("Strongest links", () => { setMode("volume"); if(strong) selectPair(strong.a,strong.b); });
+    prompt("Period changes", () => { setMode("change"); if(shifting) selectPair(shifting.a,shifting.b); });
+    prompt("Find a field", () => { searchEl.value = "Science"; searchEl.focus(); renderSearchResults("Science"); });
+    prompt("Ask a question", () => {
       searchEl.value = "Which areas are becoming more interdisciplinary?";
       askQuestion(searchEl.value);
     });
@@ -460,6 +460,9 @@
     if (mapCount) mapCount.textContent = money(fields.length) + " fields · " +
       money(edges.length) + " documented connections";
     const m = net.meta || {};
+    const headerMeta = document.getElementById("atlas-header-meta");
+    if (headerMeta) headerMeta.textContent =
+      "FSU / OpenAlex · " + money(m.work_count) + " works · " + money(fields.length) + " fields";
     const meta = document.getElementById("meta");
     if (meta) meta.textContent = money(m.work_count) + " publications · " +
       money(m.interdisc_work_count) + " cross-field works · OpenAlex · " + (m.years || "2018–2026") +
