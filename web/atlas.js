@@ -287,11 +287,37 @@
       if (connected.length) {
         const top = connected.slice().sort((a,b) => b.weight - a.weight)[0];
         selectPair(top.a, top.b);
-        // Surface the matched publication at the start of the evidence list.
-        const paperLink = [...sourcesEl.querySelectorAll(".source-paper")].find(link =>
-          link.getAttribute("href")?.includes(encodeURIComponent(work.id)));
-        if (paperLink) paperLink.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        // A searched record must remain visible even if it falls outside
+        // the first eight stored provenance IDs shown for this crossing.
+        const direct = document.createElement("a");
+        direct.className = "source-paper";
+        direct.href = "https://openalex.org/" + encodeURIComponent(work.id);
+        direct.target = "_blank";
+        direct.rel = "noopener noreferrer";
+        const title = document.createElement("b");
+        title.textContent = work.title;
+        const sub = document.createElement("small");
+        sub.textContent = "Your matching record / " + work.year + " / OpenAlex ↗";
+        direct.append(title, sub);
+        sourcesEl.insertBefore(direct, sourcesEl.querySelector(".source-paper"));
+      } else {
+        // All interdisciplinary titles are searchable, but the evidence-ID
+        // store only retains up to 60 per pair. Do not pretend a missing
+        // reverse index means this publication was never cross-disciplinary.
+        selected = null;
+        focusedField = null;
+        selectionClasses();
+        focusEl.innerHTML =
+          '<div class="focus-eyebrow">Publication / exact title match</div>' +
+          '<h2>' + escapeHTML(work.title) + '</h2>' +
+          '<p class="focus-explainer">This paper appears in the indexed cross-field publications. Its pair-level provenance was not retained in the capped set of source IDs. Open the record directly to inspect it.</p>';
+        sourcesEl.innerHTML =
+          '<h3>Source record</h3><a class="source-paper" href="https://openalex.org/' +
+          encodeURIComponent(work.id) + '" target="_blank" rel="noopener noreferrer"><b>' +
+          escapeHTML(work.title) + '</b><small>' + escapeHTML(work.year) +
+          ' / OpenAlex ↗</small></a>';
       }
+      updateStatus("Found a publication title matching your search.");
       hideSearch();
     }
 
@@ -418,7 +444,7 @@
     };
     prompt("01 / Heaviest crossings", () => { setMode("volume"); if(strong) selectPair(strong.a,strong.b); });
     prompt("02 / What has shifted?", () => { setMode("change"); if(shifting) selectPair(shifting.a,shifting.b); });
-    prompt("03 / Explore a field", () => { searchEl.focus(); renderSearchResults("Science"); });
+    prompt("03 / Explore a field", () => { searchEl.value = "Science"; searchEl.focus(); renderSearchResults("Science"); });
     prompt("04 / Ask a research question", () => {
       searchEl.value = "Which areas are becoming more interdisciplinary?";
       askQuestion(searchEl.value);
