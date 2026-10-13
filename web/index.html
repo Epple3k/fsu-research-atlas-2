@@ -164,35 +164,23 @@
 <div class="app app-locked" id="app">
   <header class="atlas-header">
     <div class="atlas-brand">
-      <div class="atlas-sigil" aria-hidden="true"></div>
-      <div><strong>Research Atlas</strong><small>FSU / Cross-field observatory</small></div>
+      <strong>Research Atlas</strong>
+      <span class="atlas-subtitle">Florida State University / OpenAlex</span>
     </div>
     <div class="atlas-header-right">
-      <span class="agent-pill" id="agent-status" aria-live="polite">Local index</span>
-      <a href="case-study.html">Design rationale ↗</a>
+      <span class="agent-pill" id="agent-status" aria-live="polite">Local index active</span>
+      <a href="case-study.html">Method ↗</a>
     </div>
   </header>
 
-  <section class="atlas-intro" aria-labelledby="atlas-title">
-    <div>
-      <div class="micro-label">A publication atlas / grounded in OpenAlex</div>
-      <h1 id="atlas-title">Where research<br><em>crosses.</em></h1>
-    </div>
-    <div class="atlas-intro-copy">
-      <p>Some of the most interesting work lives between disciplines. But how do you find it in thousands of publications?</p>
-      <small>Search a field, trace an unexpected connection, and open the actual papers behind it. A map of relationships you can inspect, not just admire.</small>
-    </div>
-  </section>
-
   <section class="atlas-search-zone" aria-label="Search research">
     <div class="search-topline">
-      <span class="micro-label">01 / Start an investigation</span>
-      <span>Search fields, paper titles, or ask a question.</span>
+      <label for="q">Find a field, publication, or relationship</label>
     </div>
     <div class="ask">
       <div class="ask-row">
-        <input id="q" type="search" autocomplete="off" aria-label="Search fields, publications, or ask a research question" placeholder="Try ‘Computer Science’, a paper title, or ‘What connects to Medicine?’">
-        <button id="go" type="button">Explore ↗</button>
+        <input id="q" type="search" autocomplete="off" aria-label="Search fields, publications, or ask a research question" placeholder="Search fields and paper titles, or ask a question…">
+        <button id="go" type="button">Search ↗</button>
       </div>
       <div class="search-results" id="search-results" hidden role="region" aria-label="Search suggestions"></div>
       <div class="chips" id="chips" aria-label="Suggested investigations"></div>
@@ -204,14 +192,14 @@
   <main class="atlas-main">
     <section class="stage atlas-map" aria-labelledby="map-title">
       <div class="map-header">
-        <div><div class="micro-label">02 / The crossing field</div><h2 id="map-title">What connects. What doesn’t.</h2></div>
+        <div><div class="micro-label">02 / The crossing field</div><h2 id="map-title">Field intersections</h2></div>
         <div class="mode-switch" role="group" aria-label="Choose a data measurement">
           <button type="button" class="is-active" data-atlas-mode="volume" aria-pressed="true">Shared works</button>
           <button type="button" data-atlas-mode="change" aria-pressed="false">Window shift</button>
         </div>
       </div>
       <div class="map-subhead">
-        <span>Choose a field along either axis, or select a crossing to reveal its evidence. The empty space matters too: no documented intersection means no recorded shared works in this dataset.</span>
+        <span>Each cell counts works assigned to both fields. Select a cell to inspect sources.</span>
         <strong id="map-count"></strong>
       </div>
 
