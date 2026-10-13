@@ -168,3 +168,9 @@ body.is-case-study-embed .stage.atlas-map{padding:20px!important}
 body.is-case-study-embed .atlas-bottom{display:none}
 body.is-case-study-embed .atlas-matrix{--cell:22px;--row-name:155px}
 body.is-case-study-embed .map-header h2{font-size:38px}
+
+/* Override the old prototype's broad .ask button rule. */
+.ask .chip{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--ink);background:transparent;border:1px solid var(--line-strong);border-radius:0;padding:7px 11px;cursor:pointer}
+.ask .chip:hover,.ask .chip:focus-visible{background:var(--wine);border-color:var(--wine);color:var(--cream)}
+.ask .search-hit{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;font-family:var(--sans);text-align:left;font-size:14px;font-weight:400;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:11px 8px}
+.ask .search-hit:hover,.ask .search-hit:focus-visible{background:#f6e9dd}
