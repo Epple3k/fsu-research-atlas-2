@@ -13,152 +13,48 @@ button{cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--evidence)!important;outline-offset:3px}
 .app{display:block;width:100%;height:auto;max-height:none;min-height:100vh;overflow:visible;opacity:1;background:var(--ground)}
 .app.app-locked{visibility:hidden;opacity:0}
-/* Bespoke poster wordmark: scrollwork in vector paths, thick swashed type,
-   and type-specimen annotations. No marketing hero or obstructing overlay. */
+/* Compact editorial masthead: the research map stays the focal point. */
 header.atlas-header{
-  position:relative;
-  display:block;
-  overflow:hidden;
-  isolation:isolate;
-  padding:13px clamp(18px,2.5vw,42px) 10px;
-  background:#161918;
-  color:#ff503e;
-  border-bottom:3px solid #ff503e;
+  display:flex;align-items:center;justify-content:space-between;gap:22px;
+  padding:17px clamp(18px,2.4vw,36px) 16px;
+  background:var(--panel);color:var(--ink);border-bottom:1px solid var(--line);
 }
-/* An off-register teal block nods to the print-poster reference without
-   using a decorative photograph or covering the research instrument. */
-header.atlas-header:before{
-  content:"";
-  position:absolute;
-  z-index:-1;
-  top:0;
-  right:0;
-  bottom:0;
-  width:28%;
-  background:linear-gradient(130deg,#24423e 0%,#3a7275 56%,#183c3a 100%);
-  clip-path:polygon(21% 0,100% 0,100% 100%,0 100%);
-  opacity:.72;
-}
-header.atlas-header:after{
-  content:"";
-  position:absolute;
-  z-index:-1;
-  inset:0;
-  pointer-events:none;
-  background-image:repeating-linear-gradient(110deg,transparent 0px,transparent 13px,rgba(255,255,255,.024) 14px,transparent 15px);
-  opacity:.35;
-}
-.atlas-header-top,.atlas-header-bottom{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  font-size:10px;
-  font-family:var(--serif);
-  font-weight:600;
-  line-height:1.15;
-  letter-spacing:.045em;
-  text-transform:uppercase;
-}
-.atlas-header-meta{
-  font-family:var(--sans);
-  font-size:9px;
-  font-weight:500;
-  letter-spacing:.075em;
-  color:#ffae9f;
-  text-align:center;
-}
-.atlas-edition,.atlas-notation{white-space:nowrap}
-.atlas-method{
-  color:inherit;
-  text-decoration:none;
-  border-bottom:1px solid currentColor;
-  white-space:nowrap;
-  padding-bottom:2px;
-}
-.atlas-method:hover{color:#fff0e8}
-.atlas-lettering{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:0;
-  width:100%;
-  margin:0 auto;
-  color:#ff503e;
-}
-.atlas-scroll{
-  display:block;
-  width:min(100%,1200px);
-  margin:0 auto;
-  color:#ff503e;
-  overflow:visible;
-  flex:none;
-  pointer-events:none;
-}
-.atlas-scroll--upper{
-  height:clamp(32px,4.3vw,58px);
-  margin-bottom:-4px;
-}
-.atlas-scroll--lower{
-  height:clamp(37px,5vw,65px);
-  margin-top:-8px;
-}
+.atlas-brand{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;min-width:0}
 header.atlas-header h1.atlas-wordmark{
-  display:flex;
-  justify-content:center;
-  align-items:baseline;
-  gap:.17em;
-  width:100%;
-  margin:0;
-  padding:0 0 .08em;
-  font-family:"Berkshire Swash","Bookman Old Style",Georgia,serif;
-  font-size:clamp(64px,10.8vw,155px);
-  font-weight:400;
-  line-height:1.04;
-  letter-spacing:-.065em;
-  white-space:nowrap;
-  text-align:center;
-  color:#ff503e;
-  text-shadow:1px 1px 0 #631e18,2px 2px 0 rgba(0,0,0,.23);
+  margin:0;font-family:var(--serif);font-size:clamp(34px,3.25vw,46px);
+  font-weight:400;line-height:.98;letter-spacing:-.045em;white-space:nowrap;color:var(--ink);
 }
-.atlas-wordmark-last{
-  display:inline-block;
-  transform:translateY(.07em) rotate(-2.4deg);
-  transform-origin:25% 75%;
+.atlas-wordmark em{font-weight:400;font-style:italic;color:var(--wine)}
+.atlas-edition{
+  font-family:var(--sans);font-size:10px;font-weight:500;
+  line-height:1.4;letter-spacing:.035em;color:var(--muted);
 }
-.atlas-header-bottom{
-  margin-top:-7px;
-  font-size:9px;
+.atlas-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:22px;flex-shrink:0}
+.atlas-method{
+  font-family:var(--sans);font-size:11px;font-weight:500;line-height:1.4;
+  color:var(--wine);text-decoration:none;border-bottom:1px solid transparent;white-space:nowrap;
 }
-.agent-pill{padding:0;border:0;border-radius:0;color:#ffae9f;font-family:var(--sans);font-size:10px}
-.agent-pill.badge-live{background:transparent;color:#bbedd1}
-@media(max-width:940px){
-  header.atlas-header h1.atlas-wordmark{font-size:clamp(53px,10.3vw,100px)}
-  .atlas-header-meta{display:none}
-  .atlas-scroll--upper{height:36px}
-  .atlas-scroll--lower{height:44px}
+.atlas-method:hover,.atlas-method:focus-visible{border-color:currentColor}
+.agent-pill{
+  display:inline-flex;align-items:center;gap:7px;padding:0;border:0;border-radius:0;
+  background:transparent;color:var(--muted);font-family:var(--sans);font-size:10px;
+  line-height:1.4;white-space:nowrap;
+}
+.agent-pill:before{content:"";display:block;width:6px;height:6px;border-radius:50%;background:var(--line-strong);flex-shrink:0}
+.agent-pill.badge-live{background:transparent;color:var(--muted)}
+.agent-pill.badge-live:before{background:#4d806a}
+@media(max-width:900px){
+  .atlas-brand{gap:8px 16px}
+  .atlas-header-actions{gap:14px}
 }
 @media(max-width:620px){
-  header.atlas-header{padding:10px 12px 9px}
-  header.atlas-header h1.atlas-wordmark{
-    display:block;
-    font-size:clamp(55px,14.5vw,88px);
-    line-height:.90;
-    white-space:normal;
-    letter-spacing:-.06em;
-    padding:5px 0 6px;
-  }
-  header.atlas-header h1.atlas-wordmark span{display:block}
-  header.atlas-header h1.atlas-wordmark .atlas-wordmark-last{
-    transform:translateY(-.01em) rotate(-3deg);
-  }
-  .atlas-scroll--upper{height:29px;margin-bottom:-9px}
-  .atlas-scroll--lower{height:33px;margin-top:-7px}
-  .atlas-header-top,.atlas-header-bottom{font-size:8px}
-  .atlas-edition{letter-spacing:-.02em}
-  .atlas-notation{white-space:normal}
-  .agent-pill{font-size:9px;white-space:nowrap}
+  header.atlas-header{align-items:flex-start;gap:12px;padding:15px 16px 13px}
+  .atlas-brand{flex-direction:column;align-items:flex-start;gap:4px}
+  header.atlas-header h1.atlas-wordmark{font-size:clamp(29px,7vw,37px)}
+  .atlas-edition{font-size:9px}
+  .atlas-header-actions{flex-direction:column;align-items:flex-end;gap:7px;padding-top:2px}
+  .agent-pill{font-size:9px}
+  .atlas-method{font-size:10px}
 }
 .micro-label{font-size:10px;line-height:1.4;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--evidence)}
 .atlas-search-zone{padding:13px clamp(18px,2.4vw,36px) 11px;background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:8}
@@ -281,12 +177,10 @@ body.is-portfolio-preview .atlas-search-zone,
 body.is-portfolio-preview .atlas-signals,
 body.is-portfolio-preview .atlas-inspector,
 body.is-portfolio-preview .atlas-bottom{display:none!important}
-body.is-portfolio-preview header.atlas-header{padding:8px 14px 6px}
-body.is-portfolio-preview .atlas-header-top,
-body.is-portfolio-preview .atlas-header-bottom{display:none}
-body.is-portfolio-preview header.atlas-header h1.atlas-wordmark{font-size:clamp(31px,6vw,88px);line-height:1;white-space:nowrap;display:flex;padding:0}
-body.is-portfolio-preview .atlas-scroll--upper{height:22px;margin-bottom:-8px}
-body.is-portfolio-preview .atlas-scroll--lower{height:24px;margin-top:-7px}
+body.is-portfolio-preview header.atlas-header{padding:10px 20px}
+body.is-portfolio-preview header.atlas-header h1.atlas-wordmark{font-size:clamp(27px,4.5vw,43px)}
+body.is-portfolio-preview .atlas-edition,
+body.is-portfolio-preview .atlas-header-actions{display:none}
 body.is-portfolio-preview .atlas-main{display:block;min-height:0}
 body.is-portfolio-preview .stage.atlas-map{padding:18px 22px!important;min-height:0}
 body.is-portfolio-preview .atlas-matrix{--cell:27px;--row-name:172px}
@@ -297,11 +191,10 @@ body.is-portfolio-preview .map-method{display:none}
 
 /* A compact but fully interactive case-study embed, unlike passive thumbnails. */
 body.is-case-study-embed .atlas-signals{display:none}
-body.is-case-study-embed header.atlas-header h1.atlas-wordmark{font-size:clamp(47px,6.5vw,92px);display:flex;white-space:nowrap}
-body.is-case-study-embed .atlas-scroll--upper{height:26px}
-body.is-case-study-embed .atlas-scroll--lower{height:29px}
-body.is-case-study-embed .atlas-header-top{font-size:9px}
-body.is-case-study-embed .atlas-header-bottom{display:none}
+body.is-case-study-embed header.atlas-header{padding:12px 20px}
+body.is-case-study-embed header.atlas-header h1.atlas-wordmark{font-size:clamp(30px,3vw,40px)}
+body.is-case-study-embed .atlas-edition,
+body.is-case-study-embed .agent-pill{display:none}
 body.is-case-study-embed .atlas-search-zone{padding-top:10px;padding-bottom:10px}
 body.is-case-study-embed .stage.atlas-map{padding:20px!important}
 body.is-case-study-embed .atlas-bottom{display:none}
@@ -314,8 +207,3 @@ body.is-case-study-embed .map-header h2{font-size:32px}
 .ask .search-hit{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;font-family:var(--sans);text-align:left;font-size:14px;font-weight:400;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:11px 8px}
 .ask .search-hit:hover,.ask .search-hit:focus-visible{background:#f6e9dd}
 
-@media(max-width:620px){
-  body.is-case-study-embed header.atlas-header h1.atlas-wordmark{
-    display:block;white-space:normal;font-size:clamp(47px,13vw,72px);
-  }
-}
