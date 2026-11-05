@@ -58,7 +58,6 @@
     const sourcesEl = document.getElementById("atlas-sources");
     const searchEl = document.getElementById("q");
     const searchResults = document.getElementById("search-results");
-    const signals = document.getElementById("atlas-signals");
     const status = document.getElementById("atlas-status");
     if (!grid || !focusEl || !sourcesEl) return;
 
@@ -94,7 +93,7 @@
       const fragment = document.createDocumentFragment();
       const corner = document.createElement("div");
       corner.className = "matrix-corner";
-      corner.innerHTML = "FIELDS<br>× FIELDS<br><span style='color:#9c8e82;font-weight:400'>select an intersection ↘</span>";
+      corner.textContent = "Field × field";
       fragment.appendChild(corner);
 
       for (const field of sorted) {
@@ -158,8 +157,8 @@
       const keyEl = document.getElementById("map-legend-key");
       if (keyEl) {
         keyEl.innerHTML = mode === "volume"
-          ? '<em>Color = shared publications</em><div class="swatches"><i style="background:#e8cbc6"></i><i style="background:#cf8e83"></i><i style="background:#a85148"></i><i style="background:#722720"></i></div> fewer → more'
-          : '<em>Color = change between two unequal time windows</em><div class="swatches"><i style="background:#42738b"></i><i style="background:#d5c4ba"></i><i style="background:#e49784"></i><i style="background:#832b23"></i></div> lower ← → higher';
+          ? '<span class="legend-label">Shared publications</span><div class="swatches" aria-hidden="true"><i style="background:#e8cbc6"></i><i style="background:#cf8e83"></i><i style="background:#a85148"></i><i style="background:#722720"></i></div><span class="legend-range">fewer → more</span>'
+          : '<span class="legend-label">Change</span><div class="swatches" aria-hidden="true"><i style="background:#42738b"></i><i style="background:#d5c4ba"></i><i style="background:#e49784"></i><i style="background:#832b23"></i></div><span class="legend-range">decline → growth</span><span class="legend-note">2018–21 vs 2022–26 · unequal periods, not annualized</span>';
       }
       document.querySelectorAll("[data-atlas-mode]").forEach(button => {
         const active = button.dataset.atlasMode === mode;
@@ -178,30 +177,30 @@
     }
 
     function renderSources(edge) {
+      sourcesEl.hidden = !edge && !isControl;
       if (isControl) {
-        sourcesEl.innerHTML = '<h3>Source detail</h3><p>Paper-level sources are hidden in this comparison view. The counts and selection remain available.</p>';
+        sourcesEl.innerHTML = '<h3>Source records hidden</h3><p>Unavailable in this study condition.</p>';
         return;
       }
       if (!edge) {
-        sourcesEl.innerHTML = '<h3>Source library</h3><p>Select a crossing to see the papers that constitute its relationship.</p>';
+        sourcesEl.replaceChildren();
         return;
       }
       const totalStored = (edge.work_ids || []).length;
       const limit = morePapers ? totalStored : Math.min(8, totalStored);
-      const a = byId[edge.a], b = byId[edge.b];
       const papers = (edge.work_ids || []).slice(0, limit)
         .map(id => ({ id, ...net.works[id] })).filter(p => p.t);
-      sourcesEl.innerHTML = '<h3>Evidence, not just an answer.</h3>' +
-        '<p>' + money(edge.weight) + ' works counted for ' + escapeHTML(a.name) + ' × ' +
-          escapeHTML(b.name) + '. Showing ' + money(papers.length) +
-          ' of ' + money(totalStored) + ' stored source IDs (the stored sample is capped at 60 per crossing).</p>' +
+      sourcesEl.innerHTML = '<h3>Source papers</h3>' +
+        '<p title="A maximum of 60 source IDs is retained per relationship.">' +
+        money(papers.length) + ' of ' + money(totalStored) + ' retained records · ' +
+        money(edge.weight) + ' shared publications</p>' +
         papers.map(p => '<a class="source-paper" href="https://openalex.org/' +
           encodeURIComponent(p.id) + '" target="_blank" rel="noopener noreferrer">' +
           '<b>' + escapeHTML(p.t) + '</b><small>' + escapeHTML(p.y) +
-          ' / OpenAlex record ↗</small></a>').join("") +
+          ' · OpenAlex ↗</small></a>').join("") +
         (limit < totalStored
           ? '<button type="button" class="source-more" id="show-more-papers">Show all ' +
-            money(totalStored) + ' stored records ↓</button>' : "");
+            money(totalStored) + ' retained records</button>' : "");
       const more = document.getElementById("show-more-papers");
       if (more) more.addEventListener("click", () => { morePapers = true; renderSources(edge); });
     }
@@ -220,19 +219,15 @@
         (100 * count / maxPeriod).toFixed(1) + '%"></div></div><strong>' +
         money(count) + '</strong></div>';
       const delta = edge.delta_pct == null ? "" :
-        '<strong>' + (edge.delta_pct > 0 ? "+" : "") + money(edge.delta_pct) +
-        '%</strong> difference between counted windows. ';
+        ' · ' + (edge.delta_pct > 0 ? "+" : "") + money(edge.delta_pct) + '%';
       focusEl.innerHTML =
-        '<div class="focus-eyebrow">A crossing / inspectable relationship</div>' +
         '<h2>' + escapeHTML(A.name) + ' <span class="crossing-name">×</span> ' +
         escapeHTML(B.name) + '</h2>' +
         '<div class="focus-count"><b>' + money(edge.weight) +
-        '</b><span>publications tagged with both fields</span></div>' +
-        '<p class="focus-explainer">' + delta +
-        'These works bridge two OpenAlex research categories. Select the paper records below to see the evidence for yourself.</p>' +
-        '<div class="focus-timeline"><h3>When the crossing appeared</h3>' +
+        '</b><span>shared publications</span></div>' +
+        '<div class="focus-timeline"><h3>By publication period' + delta + '</h3>' +
         timelineRow("2018–21", edge.early || 0) + timelineRow("2022–26", edge.late || 0) +
-        '<div class="timeline-caveat">Different-length windows; not annualized. A shift is an observation, not evidence of a causal trend.</div></div>';
+        '<div class="timeline-caveat">Unequal periods · counts not annualized</div></div>';
       renderSources(edge);
       updateStatus("Selected " + A.name + " × " + B.name + ": " + money(edge.weight) + " shared works.");
       return true;
@@ -246,13 +241,10 @@
       const related = edges.filter(e => e.a === id || e.b === id)
         .sort((a, b) => b.weight - a.weight);
       focusEl.innerHTML =
-        '<div class="focus-eyebrow">Field / navigate its boundaries</div>' +
         '<h2>' + escapeHTML(f.name) + '</h2>' +
         '<div class="focus-count"><b>' + money(related.length) +
-        '</b><span>other fields connected through shared publications</span></div>' +
-        '<p class="focus-explainer"><strong>' + money(f.works) +
-        ' works</strong> in this field across the dataset. Highlighted cells show where its publications cross disciplinary boundaries.</p>' +
-        '<div class="partner-list"><h3>Explore its strongest crossings</h3>' +
+        '</b><span>connected fields · ' + money(f.works) + ' indexed works</span></div>' +
+        '<div class="partner-list"><h3>Related fields</h3>' +
         related.slice(0, 8).map(e => {
           const other = byId[e.a === id ? e.b : e.a];
           return '<button type="button" class="partner-link" data-partner="' +
@@ -309,11 +301,10 @@
         focusedField = null;
         selectionClasses();
         focusEl.innerHTML =
-          '<div class="focus-eyebrow">Publication / exact title match</div>' +
           '<h2>' + escapeHTML(work.title) + '</h2>' +
-          '<p class="focus-explainer">This paper appears in the indexed cross-field publications. Its pair-level provenance was not retained in the capped set of source IDs. Open the record directly to inspect it.</p>';
+          '<p class="focus-explainer">Pair-level source IDs were not retained for this paper.</p>';
         sourcesEl.innerHTML =
-          '<h3>Source record</h3><a class="source-paper" href="https://openalex.org/' +
+          '<h3>OpenAlex record</h3><a class="source-paper" href="https://openalex.org/' +
           encodeURIComponent(work.id) + '" target="_blank" rel="noopener noreferrer"><b>' +
           escapeHTML(work.title) + '</b><small>' + escapeHTML(work.year) +
           ' / OpenAlex ↗</small></a>';
@@ -412,14 +403,6 @@
       if (!event.target.closest(".ask")) hideSearch();
     });
 
-    function createSignal(eyebrow, title, detail, callback) {
-      const button = document.createElement("button");
-      button.type = "button"; button.className = "signal";
-      button.innerHTML = "<span>" + escapeHTML(eyebrow) + "</span><strong>" +
-        escapeHTML(title) + "</strong><small>" + escapeHTML(detail) + " ↗</small>";
-      button.addEventListener("click", callback);
-      signals.appendChild(button);
-    }
     const strong = edges[0];
     const shifts = edges.filter(e => e.delta_pct != null && e.early >= 8 && e.weight >= 20)
       .sort((a,b) => b.delta_pct - a.delta_pct);
@@ -427,48 +410,11 @@
     const broadest = fields.slice().sort((a,b) =>
       edges.filter(e => e.a === b.id || e.b === b.id).length -
       edges.filter(e => e.a === a.id || e.b === a.id).length)[0];
-    if (strong) createSignal("Strongest crossing", byId[strong.a].name + " × " + byId[strong.b].name,
-      money(strong.weight) + " shared works", () => {setMode("volume"); selectPair(strong.a,strong.b)});
-    if (shifting) createSignal("Notable window shift", byId[shifting.a].name + " × " + byId[shifting.b].name,
-      (shifting.delta_pct > 0 ? "+" : "") + money(shifting.delta_pct) + "% / unequal windows",
-      () => {setMode("change"); selectPair(shifting.a,shifting.b)});
-    if (broadest) createSignal("Broadest reach", broadest.name,
-      money(edges.filter(e => e.a === broadest.id || e.b === broadest.id).length) + " connected fields",
-      () => focusField(broadest.id));
-
-    const chips = document.getElementById("chips");
-    chips.replaceChildren();
-    const prompt = (title, handler) => {
-      const button = document.createElement("button");
-      button.type = "button"; button.className = "chip"; button.textContent = title;
-      button.addEventListener("click", handler); chips.appendChild(button);
-    };
-    prompt("Strongest links", () => { setMode("volume"); if(strong) selectPair(strong.a,strong.b); });
-    prompt("Period changes", () => { setMode("change"); if(shifting) selectPair(shifting.a,shifting.b); });
-    prompt("Find a field", () => { searchEl.value = "Science"; searchEl.focus(); renderSearchResults("Science"); });
-    prompt("Ask a question", () => {
-      searchEl.value = "Which areas are becoming more interdisciplinary?";
-      askQuestion(searchEl.value);
-    });
-
     window.atlasSelectClaim = claim => {
       const pair = claim?.edges?.[0];
       if (pair && pair.length === 2) selectPair(pair[0], pair[1]);
     };
 
-    const mapCount = document.getElementById("map-count");
-    if (mapCount) mapCount.textContent = money(fields.length) + " fields · " +
-      money(edges.length) + " documented connections";
-    const m = net.meta || {};
-    const headerMeta = document.getElementById("atlas-header-meta");
-    if (headerMeta) headerMeta.textContent =
-      "FSU / OpenAlex · " + money(m.work_count) + " works · " + money(fields.length) + " fields";
-    const meta = document.getElementById("meta");
-    if (meta) meta.textContent = money(m.work_count) + " publications · " +
-      money(m.interdisc_work_count) + " cross-field works · OpenAlex · " + (m.years || "2018–2026") +
-      (m.sample ? " · SAMPLE DATA" : "");
-    if (isControl) document.getElementById("atlas-study-note").textContent =
-      "Comparison condition: source records intentionally hidden.";
     renderGrid();
     if (strong) selectPair(strong.a, strong.b);
     else if (broadest) focusField(broadest.id);
