@@ -152,96 +152,60 @@
 </head>
 <body>
 <div class="boot-gate" id="boot-gate" role="status" aria-live="polite">
-  <div class="boot-topline"><span>Research Atlas / Florida State University</span><span>Source: OpenAlex</span></div>
   <div class="boot-copy">
-    <div class="boot-kicker">Indexing the research map</div>
-    <h1>Finding the crossings.</h1>
-    <p id="boot-detail">Reading the publication record and assembling the relationships.</p>
+    <h1>Research Atlas</h1>
+    <p id="boot-detail">Loading research data…</p>
     <div class="boot-track" aria-hidden="true"><span></span></div>
   </div>
 </div>
-
 <div class="app app-locked" id="app">
-  <header class="atlas-header">
-    <div class="atlas-brand">
-      <h1 class="atlas-wordmark">Research <em>Atlas</em></h1>
-      <span class="atlas-edition" id="atlas-header-meta">FSU / OPENALEX</span>
-    </div>
-    <div class="atlas-header-actions">
-      <span class="agent-pill" id="agent-status" aria-live="polite">Local index active</span>
-      <a href="https://emitrice.com/?project=research-atlas" class="atlas-method">Case study ↗</a>
-    </div>
-  </header>
-
-  <section class="atlas-search-zone" aria-label="Search research">
-    <div class="search-topline">
-      <label for="q">Find a field, publication, or relationship</label>
-    </div>
-    <div class="ask">
-      <div class="ask-row">
-        <input id="q" type="search" autocomplete="off" aria-label="Search fields, publications, or ask a research question" placeholder="Search fields and paper titles, or ask a question…">
-        <button id="go" type="button">Search ↗</button>
+  <section class="atlas-search-zone" aria-label="Research Atlas search">
+    <div class="atlas-toolbar">
+      <div class="atlas-brand">
+        <h1 class="atlas-wordmark">Research <em>Atlas</em></h1>
+        <span class="atlas-edition">FSU · OpenAlex</span>
       </div>
-      <div class="search-results" id="search-results" hidden role="region" aria-label="Search suggestions"></div>
-      <div class="chips" id="chips" aria-label="Suggested investigations"></div>
+      <div class="ask">
+        <div class="ask-row">
+          <input id="q" type="search" autocomplete="off" aria-label="Search research fields, publications, or ask a question" placeholder="Search fields, papers, or ask a question…">
+          <button id="go" type="button">Search</button>
+        </div>
+        <div class="search-results" id="search-results" hidden role="region" aria-label="Search suggestions"></div>
+      </div>
+      <div class="atlas-utilities">
+        <span class="agent-pill" id="agent-status" aria-live="polite">Local index active</span>
+        <a href="https://emitrice.com/?project=research-atlas" class="atlas-method" aria-label="About Research Atlas">About ↗</a>
+      </div>
     </div>
   </section>
-
-  <section class="atlas-signals" id="atlas-signals" aria-label="Signals in the research data"></section>
-
   <main class="atlas-main">
     <section class="stage atlas-map" aria-labelledby="map-title">
       <div class="map-header">
-        <div><h2 id="map-title">Field intersections</h2></div>
+        <h2 id="map-title">Field intersections</h2>
         <div class="mode-switch" role="group" aria-label="Choose a data measurement">
           <button type="button" class="is-active" data-atlas-mode="volume" aria-pressed="true">Shared works</button>
-          <button type="button" data-atlas-mode="change" aria-pressed="false">Window shift</button>
+          <button type="button" data-atlas-mode="change" aria-pressed="false">Change</button>
         </div>
       </div>
-      <div class="map-subhead">
-        <span>Each cell counts works assigned to both fields. Select a cell to inspect sources.</span>
-        <strong id="map-count"></strong>
-      </div>
-
       <div class="matrix-shell">
         <div class="matrix-scroll" tabindex="0" aria-label="Scrollable map of research field intersections">
           <div id="atlas-matrix" class="atlas-matrix" aria-label="Field-by-field shared publication matrix"></div>
         </div>
-        <div class="map-legend"><div id="map-legend-key"></div><span>Each pair appears twice so either field is easy to find.</span></div>
+        <div class="map-legend" id="map-legend-key" aria-label="Heatmap color legend"></div>
       </div>
-      <div class="map-method">
-        <div><strong id="atlas-status" role="status">Choose a crossing to inspect it.</strong><br>Cells encode co-occurrence in OpenAlex research fields, not direct researcher collaboration.</div>
-        <div style="text-align:right;max-width:260px">“Window shift” compares 2018–2021 with 2022–2026. The periods are different lengths and are not annualized.</div>
-      </div>
+      <div id="atlas-status" class="sr-only" role="status" aria-live="polite"></div>
       <svg id="net" class="legacy-net" viewBox="0 0 760 760" aria-hidden="true"></svg>
       <div class="tooltip" id="tooltip" aria-hidden="true"></div>
     </section>
-
     <aside class="panel atlas-inspector" aria-label="Selected research connection">
-      <div class="inspector-header"><span>Selected relationship</span><small>Source records</small></div>
-      <div id="atlas-focus" class="atlas-focus">
-        <div class="focus-eyebrow">Choose a crossing</div>
-        <h2>From a pattern to its papers.</h2>
-        <p>Every bright tile can be traced back to specific publication records.</p>
-      </div>
+      <div id="atlas-focus" class="atlas-focus"><h2>Select a crossing</h2></div>
       <div id="atlas-sources" class="inspector-sources" aria-live="polite"></div>
       <section class="question-results" id="question-results" aria-label="Question analysis" hidden>
-        <div class="micro-label" style="padding-top:20px">Question / evidence-backed analysis</div>
-        <p id="question-label" class="study-note"></p>
+        <p id="question-label" class="question-prompt"></p>
         <div class="scroll" id="out"></div>
       </section>
     </aside>
   </main>
-
-  <footer class="atlas-bottom">
-    <div>
-      <strong>Patterns invite questions. Papers answer them.</strong>
-      <p>Field labels come from OpenAlex, not administrative departments. Shared works signal an intersection, not proof of collaboration. A selected cell links back to stored source IDs; the retained source list is capped at 60 IDs per relationship.</p>
-      <p class="atlas-meta" id="meta"></p>
-      <p class="atlas-meta" id="atlas-study-note"></p>
-    </div>
-    <a href="https://emitrice.com/?project=research-atlas">Read the research and design process ↗</a>
-  </footer>
 </div>
 
 <script src="network-data.js" onerror="void 0"></script>
@@ -727,16 +691,10 @@ function render(inv){
   const liveTag=inv.live?`<span class="badge badge-live">answered live</span> `:"";
   let html=`<p class="interp">${liveTag}${escapeHtml(inv.interp)}</p>`;
   inv.claims.forEach((c,i)=>{
-    const cue=STUDY_MODE==="control"?"click to highlight this relationship":"click to see the papers behind this";
-    html+=`<div class="claim" data-i="${i}">
-      <div class="headline">${c.headline}</div>
-      <div class="cue"><span class="dot"></span>${cue}</div>
-    </div>`;
+    html+=`<button type="button" class="claim" data-i="${i}"><span class="headline">${c.headline}</span><span class="claim-action" aria-hidden="true">↗</span></button>`;
   });
   if(inv.conclusion) html+=`<p class="conclusion">${escapeHtml(inv.conclusion)}</p>`;
-  html+=STUDY_MODE==="control"
-    ?`<div class="evidence" id="evidence"><h2>Source detail</h2><p class="note">Paper-level evidence is unavailable in this comparison version.</p></div>`
-    :`<div class="evidence" id="evidence"><h2>Evidence</h2><p class="note">Select a claim above to load its papers here.</p></div>`;
+  // Source records appear once in the inspector, not twice.
   out.innerHTML=html;
   out.scrollTop=0;
 
@@ -747,7 +705,6 @@ function render(inv){
       claimEls.forEach(x=>x.classList.remove("active"));
       el.classList.add("active");
       highlight(c.edges);
-      showEvidence(c);
       window.atlasSelectClaim?.(c);
     });
   });
