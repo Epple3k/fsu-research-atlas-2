@@ -537,38 +537,7 @@ function clearHighlight(){ activeEdgePairs=[]; paint([],"active"); }
 function preview(edgePairs){ paint(edgePairs,"preview"); }
 function endPreview(){ paint(activeEdgePairs,"active"); }
 
-// ---------- evidence: resolve work ids / links to papers ----------
-function papersFor(workIds){
-  const seen=new Set(), out=[];
-  for(const id of workIds){
-    if(seen.has(id)||!NET.works[id]) continue; seen.add(id);
-    const w=NET.works[id];
-    out.push({id, title:w.t, year:w.y, url:"https://openalex.org/"+id});
-  }
-  return out;
-}
-function edgeWorkIds(a,b){
-  const k=EDGE_MAP[edgeKey(a,b)];
-  return k? k.work_ids : [];
-}
-
-function showEvidence(claim){
-  const el=document.getElementById("evidence");
-  if(STUDY_MODE==="control"){
-    el.innerHTML=`<h2>Source detail</h2><p class="note">Paper-level evidence is unavailable in this comparison version.</p>`;
-    return;
-  }
-  const papers=papersFor(claim.work_ids||[]);
-  let html=`<h2>Evidence</h2><p class="note">${claim.evidenceNote||"Papers supporting this claim."}</p>`;
-  if(papers.length===0){ html+=`<p class="empty">No individual papers stored for this claim.</p>`; }
-  papers.forEach(p=>{
-    html+=`<a class="paper" href="${p.url}" target="_blank" rel="noopener">
-      <div class="t">${escapeHtml(p.title)}</div>
-      <div class="m">${p.year||""} · ${p.id} · opens on OpenAlex</div></a>`;
-  });
-  el.innerHTML=html;
-}
-
+// Source links are rendered by atlas.js in the inspector.
 function escapeHtml(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
 // ---------- the local interpreter: question -> claims with provenance ----------
